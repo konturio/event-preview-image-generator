@@ -7,7 +7,7 @@ services:
     ports:
       - "8080:80"
     networks:
-      - epig
+      - epig-network
     environment:
       - EPIG_PORT=${EPIG_PORT:-8000}
     depends_on:
@@ -23,7 +23,7 @@ services:
     expose:
       - ${CDP_PORT}
     networks:
-      - epig
+      - epig-network
     environment:
       - CDP_PORT=${CDP_PORT:-9222}
       - WIDTH=${WIDTH:-1200}
@@ -36,7 +36,7 @@ services:
     expose:
       - ${EPIG_PORT}
     networks:
-      - epig
+      - epig-network
     depends_on:
       - chromium-headless
     environment:
@@ -46,8 +46,8 @@ services:
       - WIDTH=${WIDTH:-1200}
       - HEIGHT=${HEIGHT:-630}
       - EVENT_NAME=${EVENT_NAME:-load}
-      - QS_ADDITIONAL=${QS_ADDITIONAL:-""}
-      - LINK
+      - ADDITIONAL_QUERY_STRING=${ADDITIONAL_QUERY_STRING:-""}
+      - SITE_URL
 networks:
-  epig:
+  epig-network:
 

@@ -47,13 +47,13 @@ async def index_handler(request: web.Request):
 
 @dataclass
 class Environ:
-    LINK: str
+    SITE_URL: str
     CDP_HOST: str
     CDP_PORT: str = '9222'
     EVENT_NAME: str = 'load'
     WIDTH: int = 1200
     HEIGHT: int = 630
-    QS_ADDITIONAL: str = ''
+    ADDITIONAL_QUERY_STRING: str = ''
 
 
 async def screenshot_handler(request: web.Request):
@@ -64,22 +64,22 @@ async def screenshot_handler(request: web.Request):
     height = int(request.app['environ'].get('HEIGHT', '630'))
     cdp_host = request.app['environ']['CDP_HOST']
     cdp_port = request.app['environ'].get('CDP_PORT', '9222')
-    qs_additional = request.app['environ'].get('QS_ADDITIONAL', '')
-    link = request.app['environ']['LINK']
+    additional_query_string = request.app['environ'].get('ADDITIONAL_QUERY_STRING', '')
+    site_url = request.app['environ']['SITE_URL']
 
     # Fix problem with DNS
     ip_addr = socket.gethostbyname(cdp_host)
 
     # Inject qs_additional
-    if len(qs_additional):
-        link_parts = list(urlparse(link))
-        query_dict = parse_qs(link_parts[4])
-        query_dict.update(parse_qs(qs_additional))
-        link_parts[4] = urlencode(query_dict, doseq=True)
-        link = urlunparse(link_parts)
+    if len(additional_query_string):
+        url_parts = list(urlparse(site_url))
+        query_dict = parse_qs(url_parts[4])
+        query_dict.update(parse_qs(additional_query_string))
+        url_parts[4] = urlencode(query_dict, doseq=True)
+        site_url = urlunparse(url_parts)
 
     e = await EventPreviewImageGenerator.create(f'http://{ip_addr}:{cdp_port}', width, height)
-    img = await e.screenshot(link, event_name)
+    img = await e.screenshot(site_url, event_name)
     await e.close()
     return web.Response(body=img, content_type="image/png")
 
