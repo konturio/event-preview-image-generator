@@ -1,0 +1,56 @@
+upstream preview-generator {
+    server preview-generator:8000;
+}
+
+server {
+    listen ${NGINX_PORT};
+
+    # Test Opengraph protocol
+    location / {
+        try_files $uri $uri/index.html $uri.html =404;
+        ssi on;
+        set $og_url $scheme://$host;
+        if ($host = localhost) {
+            set $og_url $og_url:$server_port;
+        }
+        set $og_image $og_url/preview.png;
+    }
+
+    location /preview.png {
+        proxy_method GET;
+        proxy_set_header X-EPIG-URL $scheme://$host/;
+        proxy_set_header X-EPIG-EVENT 'load';
+        proxy_set_header X-EPIG-WIDTH 320;
+        proxy_set_header X-EPIG-HEIGHT 240;
+        proxy_pass http://preview-generator/;
+    }
+
+    # Test WebGL support
+    location /webgl.png {
+        proxy_set_header X-EPIG-URL 'https://browserleaks.com/webgl';
+        proxy_set_header X-EPIG-EVENT 'load';
+        proxy_set_header X-EPIG-WIDTH 1200;
+        proxy_set_header X-EPIG-HEIGHT 630;
+        proxy_pass http://preview-generator/;
+    }
+
+    # Disaster ninja test
+    location ~ /dn.png?(.*) {
+        proxy_set_header X-EPIG-URL 'https://test-apps-ninja02.konturlabs.com/active/';
+        proxy_set_header X-EPIG-EVENT 'load';
+        proxy_set_header X-EPIG-WIDTH 1200;
+        proxy_set_header X-EPIG-HEIGHT 630;
+        proxy_set_header X-EPIG-QS 'app=f29339bd-8049-41ae-9d6b-f726d8451894';
+        proxy_pass http://preview-generator/?$1;
+    }
+
+    # Google test
+    location /google.png {
+        proxy_set_header X-EPIG-URL 'https://google.com/';
+        proxy_set_header X-EPIG-EVENT 'load';
+        proxy_set_header X-EPIG-WIDTH 1200;
+        proxy_set_header X-EPIG-HEIGHT 630;
+        proxy_set_header X-EPIG-QS 'q=search+text';
+        proxy_pass http://preview-generator/;
+    }
+}

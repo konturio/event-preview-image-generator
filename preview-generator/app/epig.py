@@ -6,10 +6,10 @@ from pyppeteer.page import Page
 
 
 class EventPreviewImageGenerator(object):
-    event = asyncio.Event()
 
     def __init__(self, page: Page):
         self._page = page
+        self._event = asyncio.Event()
 
     @classmethod
     async def create(cls,
@@ -25,11 +25,12 @@ class EventPreviewImageGenerator(object):
             }
         })
         page = await browser.newPage()
+        instance = cls(page)
         await page.exposeFunction(
             'onCustomEvent',
-            cls.fire
+            instance.fire
         )
-        return cls(page)
+        return instance
 
     @staticmethod
     def _listener_func(event_name: str) -> str:
@@ -42,22 +43,21 @@ class EventPreviewImageGenerator(object):
             }}
         '''
 
-    @classmethod
-    def fire(cls) -> None:
-        cls.event.set()
-
     async def listen(self, event: str) -> None:
         await self._page.evaluateOnNewDocument(self._listener_func(event))
 
     async def goto(self, url: str) -> None:
-        await self._page.goto(url, {'waitUntil': 'networkidle0'})
+        await self._page.goto(url, {'waitUntil': 'domcontentloaded'})
 
     async def close(self) -> None:
-        await self._page.close()
+        await self._page.close(runBeforeUnload=False)
 
     async def screenshot(self, url: str, event_name: str = 'load') -> bytes:
         await self.listen(event_name)
         await self.goto(url)
-        await self.event.wait()
+        await self._event.wait()
         data = await self._page.screenshot()
         return data
+
+    def fire(self) -> None:
+        self._event.set()

@@ -1,21 +1,8 @@
 version: "3"
 services:
-  proxy:
-    image: nginx:alpine
-    volumes:
-      - ./nginx/:/etc/nginx/conf.d/
-    ports:
-      - "8080:80"
-    networks:
-      - epig-network
-    environment:
-      - EPIG_PORT=${EPIG_PORT:-8000}
-    depends_on:
-      - epig
-    command: /bin/sh -c "envsubst < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"
   chromium-headless:
     container_name: chromium-headless
-    hostname: chromium
+    hostname: ${CDP_HOST}
     cap_add:
       - SYS_ADMIN
     build:
@@ -26,8 +13,6 @@ services:
       - epig-network
     environment:
       - CDP_PORT=${CDP_PORT:-9222}
-      - WIDTH=${WIDTH:-1200}
-      - HEIGHT=${HEIGHT:-630}
   preview-generator:
     container_name: preview-generator
     hostname: preview-generator
@@ -40,14 +25,17 @@ services:
     depends_on:
       - chromium-headless
     environment:
+      - MODULE_NAME=main
+      - VARIABLE_NAME=app
+      - PORT=${EPIG_PORT:-8000}
       - CDP_HOST=${CDP_HOST:-chromium}
       - CDP_PORT=${CDP_PORT}
-      - EPIG_PORT=${EPIG_PORT:-8000}
       - WIDTH=${WIDTH:-1200}
       - HEIGHT=${HEIGHT:-630}
       - EVENT_NAME=${EVENT_NAME:-load}
-      - ADDITIONAL_QUERY_STRING=${ADDITIONAL_QUERY_STRING:-""}
+      - QS=${QS:-""}
       - SITE_URL
+      - LOCAL_TUNNEL
+      - USE_HEADERS
 networks:
   epig-network:
-

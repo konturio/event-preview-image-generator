@@ -1,7 +1,6 @@
 #!/bin/sh
 
 COMMON_SWITCHES="--headless \
-  --window-size=$WIDTH,$HEIGHT
   --disable-dev-shm-usage \
   --no-first-run \
   --disable-audio-output \
@@ -14,7 +13,8 @@ COMMON_SWITCHES="--headless \
   --user-data-dir=$WORKDIR/.chromium \
   --ignore-gpu-blocklist \
   --use-gl=angle \
-  --use-angle=swiftshader"
+  --use-angle=swiftshader \
+  --hide-scrollbars"
 
 if [ -z "$*" ]; then
   REMOTE_DEBUGGING="--remote-debugging-address=0.0.0.0 --remote-debugging-port=$CDP_PORT"
