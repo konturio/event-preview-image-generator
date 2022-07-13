@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: epig-config
+  namespace: default
+data:
+  MODULE_NAME: "main"
+  VARIABLE_NAME: "app"
+  PORT: "8000"
+  CDP_HOST: "chromium-headless"
+  CDP_PORT: "9222"
+  WIDTH: "1200"
+  HEIGHT: "630"
+  EVENT_NAME: "load"
+  SITE_URL: "https://google.com"
+  USE_HEADERS: "true"

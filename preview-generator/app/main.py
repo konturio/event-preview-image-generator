@@ -1,3 +1,4 @@
+import os
 from typing import TYPE_CHECKING
 from starlette.applications import Starlette
 from starlette.responses import Response
@@ -6,11 +7,19 @@ import settings
 from epig import EventPreviewImageGenerator
 from starlette.config import Config
 import socket
+from caches import Cache
+from asgi_caches.middleware import CacheMiddleware
 
 if TYPE_CHECKING:
     from starlette.requests import Request
 
 app = Starlette()
+
+cache = Cache("locmem://null", key_prefix="epig", ttl=os.environ.get('TTL', 60 * 60))
+app.add_event_handler("startup", cache.connect)
+app.add_event_handler("shutdown", cache.disconnect)
+
+app.add_middleware(CacheMiddleware, cache=cache)
 
 
 @app.route("/", methods=["GET"])

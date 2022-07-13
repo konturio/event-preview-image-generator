@@ -1,0 +1,38 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: preview-generator
+  labels:
+    app: preview-generator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: preview-generator
+  template:
+    metadata:
+      name: preview-generator
+      labels:
+        app: preview-generator
+    spec:
+      containers:
+        - name: preview-generator
+          image: preview-generator:latest
+          imagePullPolicy: Never
+          envFrom:
+            - configMapRef:
+                name: epig-config
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: preview-generator
+  labels:
+    app: preview-generator
+spec:
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
+  selector:
+    app: preview-generator

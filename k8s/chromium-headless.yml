@@ -1,0 +1,74 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: chromium-headless
+  labels:
+    app: chromium-headless
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chromium-headless
+  template:
+    metadata:
+      name: chromium-headless
+      labels:
+        app: chromium-headless
+    spec:
+      containers:
+        - env:
+          - name: CDP_PORT
+            value: "9222"
+          name: chromium-headless
+          image: chromium-headless:latest
+          imagePullPolicy: Never
+          livenessProbe:
+            httpGet:
+              path: /json
+              port: 9222
+            initialDelaySeconds: 10
+            timeoutSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /json
+              port: 9222
+            initialDelaySeconds: 10
+            timeoutSeconds: 10
+#          resources:
+#            limits:
+#              cpu: "1"
+#              memory: 2Gi
+#            requests:
+#              cpu: "1"
+#              memory: 100Mi
+          securityContext:
+            allowPrivilegeEscalation: true
+            capabilities:
+              add:
+                - SYS_ADMIN
+            readOnlyRootFilesystem: false
+      hostname: chromium
+      restartPolicy: Always
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+      volumes:
+        - emptyDir: { }
+          name: tmp
+        - emptyDir: { }
+          name: chrome
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: chromium-headless
+  labels:
+    app: chromium-headless
+spec:
+#  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 9222
+      targetPort: 9222
+  selector:
+    app: chromium-headless
