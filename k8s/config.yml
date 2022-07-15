@@ -14,3 +14,4 @@ data:
   EVENT_NAME: "load"
   SITE_URL: "https://google.com"
   USE_HEADERS: "true"
+  CACHE_URL: "redis://redis"

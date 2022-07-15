@@ -1,2 +1,2 @@
 #!/bin/sh
-docker-compose --project-name test-epig --env-file .env -f ../docker-compose.yml -f docker-compose.test.yml up
+docker-compose --project-name test-epig --env-file tests/.env -f ./docker-compose.yml -f tests/docker-compose.test.yml up

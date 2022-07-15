@@ -13,7 +13,7 @@ class EventPreviewImageGenerator(object):
 
     @classmethod
     async def create(cls,
-                     browser_url: str = 'http://chromium-headless:9222',
+                     browser_url: str,
                      width: int = 1200,
                      height: int = 630
                      ) -> 'EventPreviewImageGenerator':

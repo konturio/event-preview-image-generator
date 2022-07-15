@@ -1,28 +1,51 @@
+import logging
 import os
 from typing import TYPE_CHECKING
 from starlette.applications import Starlette
 from starlette.responses import Response
+from starlette.exceptions import HTTPException
 from starlette.datastructures import QueryParams, URL
 import settings
 from epig import EventPreviewImageGenerator
 from starlette.config import Config
 import socket
-from caches import Cache
-from asgi_caches.middleware import CacheMiddleware
+from aiocache import cached, caches
+from pyppeteer.errors import BrowserError, PageError
+from cache_config import get_config
+import ujson as json
+import hashlib
 
 if TYPE_CHECKING:
     from starlette.requests import Request
 
-app = Starlette()
+LOGGER = logging.getLogger(__name__)
 
-cache = Cache("locmem://null", key_prefix="epig", ttl=os.environ.get('TTL', 60 * 60))
-app.add_event_handler("startup", cache.connect)
-app.add_event_handler("shutdown", cache.disconnect)
+app = Starlette(debug=True)
 
-app.add_middleware(CacheMiddleware, cache=cache)
+caches.set_config(get_config(os.environ.get('CACHE_URL')))
+
+
+def key_builder(f, request: 'Request'):
+    h = request.headers
+    key = {
+        'module': f.__module__,
+        'func': f.__name__,
+        'x-epig-url': h.get('x-epig-url'),
+        'x-epig-event': h.get('x-epig-event'),
+        'x-epig-width': h.get('x-epig-width'),
+        'x-epig-height': h.get('x-epig-height'),
+        'x-epig-qs': h.get('x-epig-qs')
+    }
+    return hashlib.md5(json.dumps(key).encode("utf-8")).hexdigest()
 
 
 @app.route("/", methods=["GET"])
+@cached(
+    namespace="epig",
+    ttl=os.environ.get('TTL', 60 * 60),
+    alias='default',
+    key_builder=key_builder
+)
 async def preview(request: 'Request'):
     if settings.USE_HEADERS:
         h = Config(environ=request.headers)
@@ -32,28 +55,40 @@ async def preview(request: 'Request'):
         settings.HEIGHT = h('x-epig-height', cast=int, default=settings.HEIGHT)
         settings.QS = h('x-epig-qs', cast=QueryParams, default=str(settings.QS))
 
-    # TODO: try if CDP_HOST not exists
     # Fix problem with DNS
     ip_addr = socket.gethostbyname(settings.CDP_HOST)
 
-    epig = await EventPreviewImageGenerator.create(
-        # str(URL(scheme='http', hostname=settings.CDP_HOST, port=settings.CDP_PORT)),
-        str(URL(scheme='http', hostname=ip_addr, port=settings.CDP_PORT)),
-        settings.WIDTH,
-        settings.HEIGHT
-    )
-    # TODO: try if site_url not exists
-    img = await epig.screenshot(
-        str(
-            settings.SITE_URL.include_query_params(
-                **dict(request.query_params)
-            ).include_query_params(
-                **dict(settings.QS)
-            )
-        ),
-        settings.EVENT_NAME
+    try:
+        epig = await EventPreviewImageGenerator.create(
+            # str(URL(scheme='http', hostname=settings.CDP_HOST, port=settings.CDP_PORT)),
+            str(URL(scheme='http', hostname=ip_addr, port=settings.CDP_PORT)),
+            settings.WIDTH,
+            settings.HEIGHT
+        )
+    except BrowserError:
+        raise HTTPException(status_code=503)
 
-    )
-    await epig.close()
+    # TODO: try if site_url not exists
+    try:
+        img = await epig.screenshot(
+            str(
+                settings.SITE_URL.include_query_params(
+                    **dict(request.query_params)
+                ).include_query_params(
+                    **dict(settings.QS)
+                )
+            ),
+            settings.EVENT_NAME
+        )
+    except PageError:
+        raise HTTPException(status_code=404)
+    finally:
+        await epig.close()
 
     return Response(content=img, media_type="image/png")
+
+
+if __name__ == '__main__':
+    import uvicorn
+
+    uvicorn.run(app, host="127.0.0.1", port=8000)
