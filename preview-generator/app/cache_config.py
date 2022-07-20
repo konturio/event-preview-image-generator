@@ -1,7 +1,7 @@
 from starlette.datastructures import URL
 
 
-def get_config(cache_url):
+def cache_config(cache_url: str) -> dict:
     cache_url = URL(cache_url)
     serializer = {'class': 'aiocache.serializers.PickleSerializer'}
     configs = {

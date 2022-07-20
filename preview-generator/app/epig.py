@@ -1,6 +1,4 @@
-from typing import *
 import asyncio
-import uvloop
 from pyppeteer import connect
 from pyppeteer.page import Page
 

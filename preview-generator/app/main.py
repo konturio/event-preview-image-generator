@@ -1,31 +1,31 @@
-import logging
-import os
 from typing import TYPE_CHECKING
+import os
+import logging
+import socket
+import ujson as json
+import hashlib
+from aiocache import cached, caches
 from starlette.applications import Starlette
+from starlette.config import Config
 from starlette.responses import Response
 from starlette.exceptions import HTTPException
 from starlette.datastructures import QueryParams, URL
+from pyppeteer.errors import BrowserError, PageError
 import settings
 from epig import EventPreviewImageGenerator
-from starlette.config import Config
-import socket
-from aiocache import cached, caches
-from pyppeteer.errors import BrowserError, PageError
-from cache_config import get_config
-import ujson as json
-import hashlib
+from cache_config import cache_config
 
 if TYPE_CHECKING:
     from starlette.requests import Request
 
 LOGGER = logging.getLogger(__name__)
 
-app = Starlette(debug=True)
+app = Starlette()
 
-caches.set_config(get_config(os.environ.get('CACHE_URL')))
+caches.set_config(cache_config(os.environ.get('CACHE_URL')))
 
 
-def key_builder(f, request: 'Request'):
+def cache_key_builder(f, request: 'Request'):
     h = request.headers
     key = {
         'module': f.__module__,
@@ -44,7 +44,7 @@ def key_builder(f, request: 'Request'):
     namespace="epig",
     ttl=os.environ.get('TTL', 60 * 60),
     alias='default',
-    key_builder=key_builder
+    key_builder=cache_key_builder
 )
 async def preview(request: 'Request'):
     if settings.USE_HEADERS:
@@ -68,7 +68,6 @@ async def preview(request: 'Request'):
     except BrowserError:
         raise HTTPException(status_code=503)
 
-    # TODO: try if site_url not exists
     try:
         img = await epig.screenshot(
             str(
@@ -80,12 +79,13 @@ async def preview(request: 'Request'):
             ),
             settings.EVENT_NAME
         )
+        return Response(content=img, media_type="image/png")
     except PageError:
         raise HTTPException(status_code=404)
     finally:
         await epig.close()
 
-    return Response(content=img, media_type="image/png")
+
 
 
 if __name__ == '__main__':
