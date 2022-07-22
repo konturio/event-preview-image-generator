@@ -1,11 +1,8 @@
-FROM alpine:latest
+ARG ALPINE_VERSION=3.16
+FROM alpine:${ALPINE_VERSION}
 
-ENV \
-    CDP_PORT=9222 \
-    WORKDIR=/usr/src/app \
-    DOCKER_USER=chromium \
-    CHROME_PATH=/usr/bin/chromium-browser \
-    LD_LIBRARY_PATH="/usr/local/lib:$LD_LIBRARY_PATH"
+ENV WORKDIR=/app \
+    CHROME_PATH=/usr/bin/chromium-browser
 
 RUN set -xe && \
     apk upgrade --no-cache --available && \
@@ -19,19 +16,16 @@ RUN set -xe && \
         dbus \
         chromium-swiftshader \
         chromium && \
-      mkdir -p $WORKDIR/.chromium && \
-      adduser -D $DOCKER_USER -h $WORKDIR
+        mkdir -p ${WORKDIR}/cache && \
+        mkdir -p ${WORKDIR}/share
 
 COPY fonts.conf /etc/fonts/local.conf
-COPY entrypoint.sh $WORKDIR
+COPY entrypoint.sh ${WORKDIR}
 
-RUN chown -R $DOCKER_USER:$DOCKER_USER $WORKDIR && \
-    chmod +x $WORKDIR/entrypoint.sh
+RUN chmod +x ${WORKDIR}/entrypoint.sh
 
+WORKDIR ${WORKDIR}/share
 
-USER $DOCKER_USER
-WORKDIR $WORKDIR
+EXPOSE ${CHROMIUM_PORT}
 
-EXPOSE $CDP_PORT
-
-ENTRYPOINT ["./entrypoint.sh"]
+ENTRYPOINT ["../entrypoint.sh"]
