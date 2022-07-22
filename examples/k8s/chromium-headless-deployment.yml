@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: chromium-headless
+  name: chromium-headless
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chromium-headless
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: chromium-headless
+    spec:
+      containers:
+        - name: chromium-headless
+          image: chromium-headless:latest
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: epig-config
+          ports:
+            - containerPort: 9222
+          resources: {}
+          livenessProbe:
+            httpGet:
+              path: /json
+              port: 9222
+            initialDelaySeconds: 10
+            timeoutSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /json
+              port: 9222
+            initialDelaySeconds: 10
+            timeoutSeconds: 10
+          volumeMounts:
+            - mountPath: /app/cache
+              name: chromium-headless-cache
+            - mountPath: /tmp
+              name: chromium-headless-cache
+          securityContext:
+            readOnlyRootFilesystem: true
+      restartPolicy: Always
+      volumes:
+        - name: chromium-headless-cache
+          persistentVolumeClaim:
+            claimName: chromium-headless-cache

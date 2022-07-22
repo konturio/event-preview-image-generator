@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: chromium-headless
+  name: chromium-headless
+spec:
+#  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 9222
+      targetPort: 9222
+  selector:
+    app: chromium-headless

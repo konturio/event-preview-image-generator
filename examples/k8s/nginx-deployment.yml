@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+        - image: nginx:stable-alpine
+          name: nginx
+          ports:
+            - containerPort: 80
+          envFrom:
+            - configMapRef:
+                name: epig-config
+          volumeMounts:
+            - mountPath: /etc/nginx/templates
+              name: nginx-template
+              readOnly: true
+            - mountPath: /etc/nginx/html
+              name: nginx-html
+              readOnly: true
+      restartPolicy: Always
+      volumes:
+        - name: nginx-template
+          configMap:
+            name: nginx-template
+            items:
+              - key: default.conf.template
+                path: default.conf.template
+        - name: nginx-html
+          configMap:
+            name: nginx-html
+            items:
+              - key: index.html
+                path: index.html

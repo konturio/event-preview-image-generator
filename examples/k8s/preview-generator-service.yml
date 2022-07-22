@@ -1,0 +1,13 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: preview-generator
+  labels:
+    app: preview-generator
+spec:
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+  selector:
+    app: preview-generator
