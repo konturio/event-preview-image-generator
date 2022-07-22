@@ -7,7 +7,7 @@ Examples can be run using docker-compose or minikube
 Create env file
 
 ```shell
-cp docker-compose/.env.example docker-compose/.env
+cp -f docker-compose/.env.example docker-compose/.env
 ```
 
 Run
@@ -29,7 +29,7 @@ minikube addons enable ingress-dns
 Copy configmap example and edit new file
 
 ```shell
-cp k8s/configmap.yml.example k8s/configmap.yml
+cp -f k8s/configmap.yml.example k8s/configmap.yml
 ```
 
 Build local images

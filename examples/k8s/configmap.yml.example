@@ -3,12 +3,12 @@ kind: ConfigMap
 metadata:
   name: epig-config
 data:
-  CHROMIUM_ADDRESS: "chromium-headless"
+  CHROMIUM_HOST: "chromium-headless"
   CHROMIUM_PORT: "9222"
   CHROMIUM_CACHE_SIZE: "104857600"
   CHROMIUM_WIDTH: "1200"
   CHROMIUM_HEIGHT: "630"
-  USE_HEADERS: "FALSE"
+  USE_HEADERS: "TRUE"
   SITE_URL: "https://example.com"
   EVENT_NAME: "load"
   WIDTH: "1200"
