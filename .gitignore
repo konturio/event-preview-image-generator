@@ -1,1 +1,8 @@
 venv
+chromium-headless/chromium-share
+chromium-headless/chromium-cache
+preview-generator/.env
+examples/docker-compose/.env
+examples/docker-compose/chromium-cache
+examples/docker-compose/redis-data
+examples/k8s/configmap.yml

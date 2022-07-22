@@ -74,7 +74,7 @@ if you see `no ssh tunnel here :(` you need to find new link in terminal.
 
 ## Test events
 
-For testing, an nginx container with a test page is used. The test page contains text and an image that appears after 2
+For testing, nginx container with a test page is used. The test page contains text and an image that appears after 2
 seconds. The page sends two custom events before (`before_img`) and
 after (`after_img`) the image is loaded. Event name and preview size can be passed to query_string.
 
