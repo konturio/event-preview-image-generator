@@ -1,8 +1,7 @@
 from starlette.datastructures import URL
 
 
-def cache_config(cache_url: str) -> dict:
-    cache_url = URL(cache_url)
+def cache_config(cache_url: URL, password: str = None) -> dict:
     serializer = {'class': 'aiocache.serializers.PickleSerializer'}
     configs = {
         'default': {
@@ -13,7 +12,7 @@ def cache_config(cache_url: str) -> dict:
             'cache': 'aiocache.RedisCache',
             'endpoint': cache_url.hostname,
             'port': cache_url.port or 6379,
-            'password': None,
+            'password': password,
             'serializer': serializer
         },
         'memcached': {

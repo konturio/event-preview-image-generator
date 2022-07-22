@@ -50,7 +50,7 @@ docker run --rm -it -v $(pwd)/chromium-share:/app/share chromium-headless --scre
 
 Screenshot will be saved in `chromium-share/example.png` file
 
-### Remote debugging protocol
+### Run remote debugging protocol
 
 To run Chromium in remote debug protocol mode
 

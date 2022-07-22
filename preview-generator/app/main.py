@@ -1,5 +1,4 @@
 from typing import TYPE_CHECKING
-import os
 import logging
 import socket
 import ujson as json
@@ -22,7 +21,7 @@ LOGGER = logging.getLogger(__name__)
 
 app = Starlette()
 
-caches.set_config(cache_config(os.environ.get('CACHE_URL')))
+caches.set_config(cache_config(settings.CACHE_URL, settings.CACHE_PASSWORD))
 
 
 def cache_key_builder(f, request: 'Request'):
@@ -30,11 +29,12 @@ def cache_key_builder(f, request: 'Request'):
     key = {
         'module': f.__module__,
         'func': f.__name__,
-        'x-epig-url': h.get('x-epig-url'),
-        'x-epig-event': h.get('x-epig-event'),
-        'x-epig-width': h.get('x-epig-width'),
-        'x-epig-height': h.get('x-epig-height'),
-        'x-epig-qs': h.get('x-epig-qs')
+        'query_params': dict(request.query_params),
+        'X-EPIG-url': h.get('X-EPIG-url'),
+        'X-EPIG-event': h.get('X-EPIG-event'),
+        'X-EPIG-width': h.get('X-EPIG-width'),
+        'X-EPIG-height': h.get('X-EPIG-height'),
+        'X-EPIG-qs': h.get('X-EPIG-qs')
     }
     return hashlib.md5(json.dumps(key).encode("utf-8")).hexdigest()
 
@@ -42,7 +42,7 @@ def cache_key_builder(f, request: 'Request'):
 @app.route("/", methods=["GET"])
 @cached(
     namespace="epig",
-    ttl=os.environ.get('TTL', 60 * 60),
+    ttl=settings.CACHE_TTL,
     alias='default',
     key_builder=cache_key_builder
 )
@@ -56,12 +56,12 @@ async def preview(request: 'Request'):
         settings.QS = h('x-epig-qs', cast=QueryParams, default=str(settings.QS))
 
     # Fix problem with DNS
-    ip_addr = socket.gethostbyname(settings.CDP_HOST)
+    ip_addr = socket.gethostbyname(settings.CHROMIUM_HOST)
 
     try:
         epig = await EventPreviewImageGenerator.create(
-            # str(URL(scheme='http', hostname=settings.CDP_HOST, port=settings.CDP_PORT)),
-            str(URL(scheme='http', hostname=ip_addr, port=settings.CDP_PORT)),
+            # str(URL(scheme='http', hostname=settings.CHROMIUM_HOST, port=settings.CHROMIUM_PORT)),
+            str(URL(scheme='http', hostname=ip_addr, port=settings.CHROMIUM_PORT)),
             settings.WIDTH,
             settings.HEIGHT
         )
@@ -86,9 +86,7 @@ async def preview(request: 'Request'):
         await epig.close()
 
 
-
-
 if __name__ == '__main__':
     import uvicorn
 
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run(app, host="127.0.0.1", port=8000, debug=settings.DEBUG)
