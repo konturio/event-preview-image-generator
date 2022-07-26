@@ -37,8 +37,7 @@ spec:
             readOnlyRootFilesystem: true
       volumes:
         - name: data
-          persistentVolumeClaim:
-            claimName: redis-data
+          emptyDir: {}
         - name: config
           configMap:
             name: redis-config

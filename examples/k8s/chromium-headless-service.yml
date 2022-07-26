@@ -5,7 +5,6 @@ metadata:
     app: chromium-headless
   name: chromium-headless
 spec:
-#  type: LoadBalancer
   ports:
     - protocol: TCP
       port: 9222

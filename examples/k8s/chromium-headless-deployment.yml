@@ -40,13 +40,10 @@ spec:
             timeoutSeconds: 10
           volumeMounts:
             - mountPath: /app/cache
-              name: chromium-headless-cache
-            - mountPath: /tmp
-              name: chromium-headless-cache
+              name: cache
           securityContext:
             readOnlyRootFilesystem: true
       restartPolicy: Always
       volumes:
-        - name: chromium-headless-cache
-          persistentVolumeClaim:
-            claimName: chromium-headless-cache
+        - name: cache
+          emptyDir: {}

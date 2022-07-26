@@ -52,13 +52,6 @@ kubectl create configmap nginx-html --from-file=nginx/html
 kubectl create configmap nginx-template --from-file=nginx/templates/
 ```
 
-Create persistant volumes
-
-```shell
-mkdir -p k8s/volume
-minikube mount k8s/volume:/data/volume
-```
-
 Apply k8s config
 
 ```shell
