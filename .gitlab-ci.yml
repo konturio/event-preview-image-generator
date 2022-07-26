@@ -18,6 +18,11 @@ build-chromium-headless-job:
       --context "${CI_PROJECT_DIR}/chromium-headless"
       --dockerfile "${CI_PROJECT_DIR}/chromium-headless/Dockerfile"
       --destination "${NEXUS_HOST}/konturdev/chromium-headless:${CI_COMMIT_TAG}"
+    - >-
+      /kaniko/executor
+      --context "${CI_PROJECT_DIR}/chromium-headless"
+      --dockerfile "${CI_PROJECT_DIR}/chromium-headless/Dockerfile"
+      --destination "${NEXUS_HOST}/konturdev/chromium-headless:latest"
   rules:
     - if: $CI_COMMIT_TAG
 
@@ -34,6 +39,11 @@ build-preview-generator-job:
       --context "${CI_PROJECT_DIR}/preview-generator"
       --dockerfile "${CI_PROJECT_DIR}/preview-generator/Dockerfile"
       --destination "${NEXUS_HOST}/konturdev/preview-generator:${CI_COMMIT_TAG}"
+    - >-
+      /kaniko/executor
+      --context "${CI_PROJECT_DIR}/preview-generator"
+      --dockerfile "${CI_PROJECT_DIR}/preview-generator/Dockerfile"
+      --destination "${NEXUS_HOST}/konturdev/preview-generator:latest"
   rules:
     - if: $CI_COMMIT_TAG
 
