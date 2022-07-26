@@ -55,11 +55,11 @@ class EventPreviewImageGenerator(object):
     async def close(self) -> None:
         await self._page.close(runBeforeUnload=False)
 
-    async def screenshot(self, url: str, event_name: str = 'load') -> bytes:
+    async def screenshot(self, url: str, event_name: str = 'load', type: str = 'png') -> bytes:
         await self.listen(event_name)
         await self.goto(url)
         await self._event.wait()
-        return await self._page.screenshot()
+        return await self._page.screenshot(type=type)
 
     def fire(self) -> None:
         self._event.set()

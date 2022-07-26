@@ -1,27 +1,45 @@
-kind: Deployment
-apiVersion: apps/v1
+apiVersion: v1
+kind: PersistentVolumeClaim
 metadata:
-  name: chromium-headless
+  labels:
+    app: chromium-headless-cache
+  name: chromium-headless-cache
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+  storageClassName: manual
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
   labels:
     app: chromium-headless
+  name: chromium-headless
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: chromium-headless
+  strategy:
+    type: Recreate
   template:
     metadata:
-      name: chromium-headless
       labels:
         app: chromium-headless
     spec:
       containers:
-        - env:
-          - name: CDP_PORT
-            value: "9222"
-          name: chromium-headless
+        - name: chromium-headless
           image: chromium-headless:latest
-          imagePullPolicy: Never
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: epig-config
+          ports:
+            - containerPort: 9222
+          resources: {}
           livenessProbe:
             httpGet:
               path: /json
@@ -34,38 +52,26 @@ spec:
               port: 9222
             initialDelaySeconds: 10
             timeoutSeconds: 10
-#          resources:
-#            limits:
-#              cpu: "1"
-#              memory: 2Gi
-#            requests:
-#              cpu: "1"
-#              memory: 100Mi
+          volumeMounts:
+            - mountPath: /app/cache
+              name: chromium-headless-cache
+            - mountPath: /tmp
+              name: chromium-headless-cache
           securityContext:
-            allowPrivilegeEscalation: true
-            capabilities:
-              add:
-                - SYS_ADMIN
-            readOnlyRootFilesystem: false
-      hostname: chromium
+            readOnlyRootFilesystem: true
       restartPolicy: Always
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 1000
       volumes:
-        - emptyDir: { }
-          name: tmp
-        - emptyDir: { }
-          name: chrome
+        - name: chromium-headless-cache
+          persistentVolumeClaim:
+            claimName: chromium-headless-cache
 ---
-kind: Service
 apiVersion: v1
+kind: Service
 metadata:
-  name: chromium-headless
   labels:
     app: chromium-headless
+  name: chromium-headless
 spec:
-#  type: LoadBalancer
   ports:
     - protocol: TCP
       port: 9222

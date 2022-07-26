@@ -17,7 +17,7 @@ data:
   TIMEOUT: "10000"
   CACHE_URL: "redis://redis:6379"
   CACHE_PASSWORD: "redis_password"
-  CACHE_TTL: "10"
+  CACHE_TTL: "120"
   DEBUG: "FALSE"
   PORT: "8000"
   NGINX_PORT: "80"

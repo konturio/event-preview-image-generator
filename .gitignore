@@ -6,3 +6,4 @@ examples/docker-compose/.env
 examples/docker-compose/chromium-cache
 examples/docker-compose/redis-data
 examples/k8s/configmap.yml
+examples/k8s/volume

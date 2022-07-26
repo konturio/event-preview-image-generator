@@ -1,3 +1,17 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    app: redis-data
+  name: redis-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+  storageClassName: manual
+---
 kind: Deployment
 apiVersion: apps/v1
 metadata:
@@ -17,12 +31,31 @@ spec:
     spec:
       containers:
         - name: redis
-          image: bitnami/redis:7.0
-          env:
-            - name: ALLOW_EMPTY_PASSWORD
-              value: "yes"
-            - name: REDIS_DISABLE_COMMANDS
-              value: "FLUSHDB,FLUSHALL"
+          image: redis:7-alpine3.16
+          command:
+            - redis-server
+            - "/usr/local/etc/redis/redis.conf"
+            - --requirepass ${CACHE_PASSWORD}
+          envFrom:
+            - configMapRef:
+                name: epig-config
+          volumeMounts:
+            - mountPath: /data
+              name: data
+            - mountPath: /usr/local/etc/redis
+              name: config
+          securityContext:
+            readOnlyRootFilesystem: true
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: redis-data
+        - name: config
+          configMap:
+            name: redis-config
+            items:
+              - key: redis-config
+                path: redis.conf
 ---
 kind: Service
 apiVersion: v1

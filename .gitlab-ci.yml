@@ -1,0 +1,143 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  NEXUS_HOST: nexus.kontur.io:8085
+  NEXUS_DEPLOYER: ykyslomed
+  NEXUS_DEPLOYER_PASS: mofObmOL4xTux)AMB3z%aLbYxD
+  CI_COMMIT_TAG: latest
+
+build-chromium-headless-job:
+  stage: build
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [ "" ]
+  script:
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"${NEXUS_HOST}\":{\"auth\":\"$(printf "%s:%s" "${NEXUS_DEPLOYER}" "${NEXUS_DEPLOYER_PASS}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
+    - >-
+      /kaniko/executor
+      --context "${CI_PROJECT_DIR}/chromium-headless"
+      --dockerfile "${CI_PROJECT_DIR}/chromium-headless/Dockerfile"
+      --destination "${NEXUS_HOST}/konturdev/chromium-headless:${CI_COMMIT_TAG}"
+  rules:
+    - if: $CI_COMMIT_TAG
+
+build-preview-generator-job:
+  stage: build
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [ "" ]
+  script:
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"${NEXUS_HOST}\":{\"auth\":\"$(printf "%s:%s" "${NEXUS_DEPLOYER}" "${NEXUS_DEPLOYER_PASS}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
+    - >-
+      /kaniko/executor
+      --context "${CI_PROJECT_DIR}/preview-generator"
+      --dockerfile "${CI_PROJECT_DIR}/preview-generator/Dockerfile"
+      --destination "${NEXUS_HOST}/konturdev/preview-generator:${CI_COMMIT_TAG}"
+  rules:
+    - if: $CI_COMMIT_TAG
+
+deploy-dn-dev:
+  stage: deploy
+  script:
+    - kubectl create secret generic redis-secret --from-literal=password=$(head -c 512 /dev/urandom | LC_CTYPE=C tr -cd 'a-zA-Z0-9' | head -c 64)
+    - >-
+      kubectl apply -f- <<EOF
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: epig-config
+      data:
+        CHROMIUM_HOST: "chromium-headless"
+        CHROMIUM_PORT: "9222"
+        CHROMIUM_CACHE_SIZE: "104857600"
+        CHROMIUM_WIDTH: "1200"
+        CHROMIUM_HEIGHT: "630"
+        USE_HEADERS: "FALSE"
+        SITE_URL: "https://test-apps-ninja02.konturlabs.com/active/"
+        EVENT_NAME: "event_ready_for_screenshot"
+        WIDTH: "1200"
+        HEIGHT: "630"
+        QS: "app=f29339bd-8049-41ae-9d6b-f726d8451894"
+        TIMEOUT: "60000"
+        CACHE_URL: "redis://redis:6379"
+        CACHE_PASSWORD: "redis_password"
+        CACHE_TTL: "120"
+        DEBUG: "FALSE"
+        PORT: "8000"
+      EOF
+    - kubectl apply -f ./k8s/
+  when: manual
+  rules:
+    - if: $CI_COMMIT_BRANCH == 'dev'
+
+deploy-dn-test:
+  stage: deploy
+  script:
+    - kubectl create secret generic redis-secret --from-literal=password=$(head -c 512 /dev/urandom | LC_CTYPE=C tr -cd 'a-zA-Z0-9' | head -c 64)
+    - >-
+      kubectl apply -f- <<EOF
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: epig-config
+      data:
+        CHROMIUM_HOST: "chromium-headless"
+        CHROMIUM_PORT: "9222"
+        CHROMIUM_CACHE_SIZE: "104857600"
+        CHROMIUM_WIDTH: "1200"
+        CHROMIUM_HEIGHT: "630"
+        USE_HEADERS: "FALSE"
+        SITE_URL: "https://test-apps-ninja01.konturlabs.com/active/"
+        EVENT_NAME: "event_ready_for_screenshot"
+        WIDTH: "1200"
+        HEIGHT: "630"
+        QS: "app=f29339bd-8049-41ae-9d6b-f726d8451894"
+        TIMEOUT: "60000"
+        CACHE_URL: "redis://redis:6379"
+        CACHE_PASSWORD: "redis_password"
+        CACHE_TTL: "120"
+        DEBUG: "FALSE"
+        PORT: "8000"
+      EOF
+    - kubectl apply -f ./k8s/
+  when: manual
+  rules:
+    - if: $CI_COMMIT_BRANCH == 'dev'
+
+deploy-dn-prod:
+  stage: deploy
+  script:
+    - kubectl create secret generic redis-secret --from-literal=password=$(head -c 512 /dev/urandom | LC_CTYPE=C tr -cd 'a-zA-Z0-9' | head -c 64)
+    - >-
+      kubectl apply -f- <<EOF
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: epig-config
+      data:
+        CHROMIUM_HOST: "chromium-headless"
+        CHROMIUM_PORT: "9222"
+        CHROMIUM_CACHE_SIZE: "104857600"
+        CHROMIUM_WIDTH: "1200"
+        CHROMIUM_HEIGHT: "630"
+        USE_HEADERS: "FALSE"
+        SITE_URL: "https://disaster.ninja/active/"
+        EVENT_NAME: "event_ready_for_screenshot"
+        WIDTH: "1200"
+        HEIGHT: "630"
+        QS: "app=f29339bd-8049-41ae-9d6b-f726d8451894"
+        TIMEOUT: "60000"
+        CACHE_URL: "redis://redis:6379"
+        CACHE_PASSWORD: "redis_password"
+        CACHE_TTL: "120"
+        DEBUG: "FALSE"
+        PORT: "8000"
+      EOF
+    - kubectl apply -f ./k8s/
+  when: manual
+  rules:
+    - if: $CI_COMMIT_BRANCH == 'main'

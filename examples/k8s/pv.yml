@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: volume1
+spec:
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 200M
+  hostPath:
+    path: /data/volume/volume1/
+  storageClassName: manual
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: volume2
+spec:
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 200M
+  hostPath:
+    path: /data/volume/volume2/
+  storageClassName: manual

@@ -32,6 +32,12 @@ Copy configmap example and edit new file
 cp -f k8s/configmap.yml.example k8s/configmap.yml
 ```
 
+Generate password for redis
+
+```shell
+kubectl create secret generic redis-secret --from-literal=password=$(head -c 512 /dev/urandom | LC_CTYPE=C tr -cd 'a-zA-Z0-9' | head -c 64)
+```
+
 Build local images
 
 ```shell
@@ -44,6 +50,13 @@ Create nginx configmaps
 ```shell
 kubectl create configmap nginx-html --from-file=nginx/html
 kubectl create configmap nginx-template --from-file=nginx/templates/
+```
+
+Create persistant volumes
+
+```shell
+mkdir -p k8s/volume
+minikube mount k8s/volume:/data/volume
 ```
 
 Apply k8s config

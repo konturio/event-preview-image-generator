@@ -22,9 +22,12 @@ spec:
             - redis-server
             - "/usr/local/etc/redis/redis.conf"
             - --requirepass ${CACHE_PASSWORD}
-          envFrom:
-            - configMapRef:
-                name: epig-config
+          env:
+            - name: CACHE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-secret
+                  key: password
           volumeMounts:
             - mountPath: /data
               name: data
@@ -40,5 +43,5 @@ spec:
           configMap:
             name: redis-config
             items:
-            - key: redis-config
-              path: redis.conf
+              - key: redis-config
+                path: redis.conf
