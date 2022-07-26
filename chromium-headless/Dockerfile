@@ -16,7 +16,8 @@ RUN set -xe && \
         dbus \
         chromium-swiftshader \
         chromium && \
-        mkdir -p ${WORKDIR}/cache && \
+        mkdir -p ${WORKDIR}/cache/chromium && \
+        mkdir -p ${WORKDIR}/cache/fonts && \
         mkdir -p ${WORKDIR}/share
 
 COPY fonts.conf /etc/fonts/local.conf

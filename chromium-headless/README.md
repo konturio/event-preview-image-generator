@@ -35,28 +35,28 @@ To adjust the window size:
 ### Generate pdf
 
 ```shell
-mkdir -p chromium-share
-docker run --rm -it -v $(pwd)/chromium-share:/app/share chromium-headless --print-to-pdf=example.pdf https://example.org
+mkdir -p share
+docker run --rm -it -v $(pwd)/share:/app/share chromium-headless --print-to-pdf=example.pdf https://example.org
 ```
 
-Pdf will be saved in `chromium-share/example.pdf` file
+Pdf will be saved in `share/example.pdf` file
 
 ### Generate screenshot
 
 ```shell
-mkdir -p chromium-share
-docker run --rm -it -v $(pwd)/chromium-share:/app/share chromium-headless --screenshot=example.png https://example.org
+mkdir -p share
+docker run --rm -it -v $(pwd)/share:/app/share chromium-headless --screenshot=example.png https://example.org
 ```
 
-Screenshot will be saved in `chromium-share/example.png` file
+Screenshot will be saved in `share/example.png` file
 
 ### Run remote debugging protocol
 
 To run Chromium in remote debug protocol mode
 
 ```shell
-mkdir -p chromium-cache
-docker run --rm -it -p 9222:9222 -e CHROMIUM_PORT=9222 -e CHROMIUM_CACHE_SIZE=104857600 -v $(pwd)/chromium-cache:/app/cache --name chromium-headless chromium-headless
+mkdir -p cache
+docker run --rm -it -p 9222:9222 -e CHROMIUM_PORT=9222 -e CHROMIUM_CACHE_SIZE=104857600 -v $(pwd)/cache:/app/cache --name chromium-headless chromium-headless
 ```
 
 ## Testing
@@ -72,8 +72,8 @@ List of open windows - http://localhost:9222/json
 To test WebGL support run following script
 
 ```shell
-mkdir -p chromium-share
-docker run --rm -it -v $(pwd)/chromium-share:/app/share chromium-headless --print-to-pdf=webgl.pdf https://browserleaks.com/webgl
+mkdir -p share
+docker run --rm -it -v $(pwd)/share:/app/share chromium-headless --print-to-pdf=webgl.pdf https://browserleaks.com/webgl
 ```
 
-and open file `chromium-share/webgl.pdf` 
+and open file `share/webgl.pdf` 

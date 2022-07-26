@@ -25,7 +25,7 @@ if [ -n "${CHROMIUM_PORT}" ]; then
 fi
 
 if [ -n "${CHROMIUM_CACHE_SIZE}" ]; then
-  CACHE_CONFIG="--user-data-dir=${WORKDIR}/cache --disk-cache-size=${CHROMIUM_CACHE_SIZE}"
+  CACHE_CONFIG="--user-data-dir=${WORKDIR}/cache/chromium --disk-cache-size=${CHROMIUM_CACHE_SIZE}"
 fi
 
 if [ "${CHROMIUM_WIDTH}${CHROMIUM_HEIGHT}" ]; then
