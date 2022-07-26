@@ -4,9 +4,6 @@ stages:
 
 variables:
   NEXUS_HOST: nexus.kontur.io:8085
-  NEXUS_DEPLOYER: ykyslomed
-  NEXUS_DEPLOYER_PASS: mofObmOL4xTux)AMB3z%aLbYxD
-  CI_COMMIT_TAG: latest
 
 build-chromium-headless-job:
   stage: build
