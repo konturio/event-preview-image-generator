@@ -25,8 +25,9 @@ Edit `.env` file with following variables:
 * WIDTH - width of screenshot in pixels (default `1200`)
 * HEIGHT - height of screenshot in pixels (default `630`)
 * IMAGE_FORMAT - format of screenshot: png or jpeg (default `png`)
-* QS - additional query string parameters (overrides the available query string)
-* DEFAULT_IMAGE_URL - image url to display on timeout error (default `empty`)
+* QS - additional query string parameters (overrides specified parameters from the available query string)
+* DEFAULT_IMAGE_URL - image url to display on timeout error (default `empty`). You need to create default image with the
+  same width, height and image format 
 * ALLOW_EMPTY_QS - generate screenshot when query string is empty, otherwise returns an error or DEFAULT_IMAGE_URL if
   present (default `TRUE`)
 * TIMEOUT - timeout in milliseconds waiting for the event (default `10000`)

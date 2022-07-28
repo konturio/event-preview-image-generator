@@ -12,7 +12,7 @@ services:
       - CHROMIUM_WIDTH
       - CHROMIUM_HEIGHT
       - CHROMIUM_CACHE_SIZE
-    read_only: true
+    read_only: false
     volumes:
       - './chromium-cache:/app/cache'
       - './tmp:/tmp'
@@ -30,7 +30,7 @@ services:
     container_name: memcached
     image: "memcached:1.6.15-alpine3.16"
     command: --memory-limit 64
-    read_only: true
+    read_only: false
     ports:
       - "11211:11211"
   preview-generator:
@@ -59,7 +59,7 @@ services:
       - TIMEOUT=${TIMEOUT:-30000}
       - CACHE_TTL=${CACHE_TTL:-10}
       - DEBUG=${DEBUG:-FALSE}
-    read_only: true
+    read_only: false
     depends_on:
       - chromium-headless
       - redis

@@ -3,7 +3,7 @@ import logging
 import socket
 import hashlib
 import ujson as json
-from aiocache import cached, caches, RedisCache
+from aiocache import cached, caches
 from starlette.applications import Starlette
 from starlette.config import Config
 from starlette.responses import Response, RedirectResponse, PlainTextResponse
@@ -96,7 +96,7 @@ async def preview(request: 'Request') -> 'Response':
         ttl=current_settings.CACHE_TTL,
         alias='default',
         key_builder=cache_key_builder
-    )(screenshot) if current_settings.CACHE_URL != '' else lambda *args, **kwargs: screenshot(*args, **kwargs)
+    )(screenshot) if current_settings.CACHE_URL != '' else screenshot
 
     try:
         img = await screenshot_cached(current_settings)
