@@ -1,4 +1,3 @@
-* Add liveness/readiness check route
 * Remove pyppeteer
   You can use the httpx (or similar) package to call cdp endpoints directly.
 * Fix or replace aiocache

@@ -1,22 +1,41 @@
+from typing import Dict
+from dataclasses import dataclass, fields, replace, asdict
 from starlette.config import Config
 from starlette.datastructures import URL, QueryParams
 
-config = Config('../.env')
 
-CHROMIUM_HOST = config('CHROMIUM_HOST', cast=str, default='localhost')
-CHROMIUM_PORT = config('CHROMIUM_PORT', cast=int, default=9222)
+@dataclass
+class Settings:
+    CHROMIUM_HOST: str = 'localhost'
+    CHROMIUM_PORT: int = 9222
+    USE_HEADERS: bool = False
+    SITE_URL: URL = None
+    EVENT_NAME: str = 'load'
+    TIMEOUT: int = 10000  # in milliseconds
+    WIDTH: int = 1200  # in pixels
+    HEIGHT: int = 630  # in pixels
+    QS: QueryParams = ''
+    ALLOW_EMPTY_QS: bool = True
+    DEFAULT_IMAGE_URL: URL = None
+    IMAGE_FORMAT: str = 'png'
 
-USE_HEADERS = config('USE_HEADERS', cast=bool, default=False)
-SITE_URL = config('SITE_URL', cast=URL, default='')
-EVENT_NAME = config('EVENT_NAME', cast=str, default='load')
-WIDTH = config('WIDTH', cast=int, default=1200)
-HEIGHT = config('HEIGHT', cast=int, default=630)
-QS = config('QS', cast=QueryParams, default='')
+    CACHE_URL: URL = ''
+    CACHE_PASSWORD: str = None
+    CACHE_TTL: int = 600  # in seconds
 
-TIMEOUT = config('TIMEOUT', cast=int, default=10000)  # 10 seconds
+    DEBUG: bool = False
 
-CACHE_URL = config('CACHE_URL', cast=URL, default='')
-CACHE_PASSWORD = config('CACHE_PASSWORD', cast=str, default=None)
-CACHE_TTL = config('CACHE_TTL', cast=int, default=600)  # 10 minutes
+    def __post_init__(self):
+        config = Config('../.env')
+        for field in fields(self):
+            value = getattr(self, field.name)
+            if value == field.default:
+                setattr(self, field.name, config(field.name, cast=field.type, default=field.default))
+            elif not isinstance(value, field.type):
+                setattr(self, field.name, field.type(value))
 
-DEBUG = config('DEBUG', cast=bool, default=False)
+    def copy(self) -> 'Settings':
+        return replace(self)
+
+    def asdict(self) -> Dict[str, str]:
+        return {key: str(value) for key, value in asdict(self).items()}

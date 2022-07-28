@@ -3,6 +3,7 @@ kind: Deployment
 metadata:
   name: nginx
   labels:
+    project: epig
     app: nginx
 spec:
   replicas: 1

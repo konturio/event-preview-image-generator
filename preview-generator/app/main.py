@@ -1,17 +1,17 @@
 from typing import TYPE_CHECKING
 import logging
 import socket
-import ujson as json
 import hashlib
-from aiocache import cached, caches
+import ujson as json
+from aiocache import cached, caches, RedisCache
 from starlette.applications import Starlette
 from starlette.config import Config
-from starlette.responses import Response
+from starlette.responses import Response, RedirectResponse, PlainTextResponse
 from starlette.exceptions import HTTPException
 from starlette.datastructures import QueryParams, URL
 from pyppeteer.errors import BrowserError, PageError
-import settings
-from epig import EventPreviewImageGenerator
+from settings import Settings
+from epig import EventPreviewImageGenerator, TimeoutError
 from cache_config import cache_config
 
 if TYPE_CHECKING:
@@ -19,71 +19,99 @@ if TYPE_CHECKING:
 
 LOGGER = logging.getLogger(__name__)
 
+settings = Settings()
+
 app = Starlette()
 
-caches.set_config(cache_config(settings.CACHE_URL, settings.CACHE_PASSWORD))
+if settings.CACHE_URL != '':
+    caches.set_config(cache_config(settings.CACHE_URL, settings.CACHE_PASSWORD))
 
 
-def cache_key_builder(f, request: 'Request'):
-    h = request.headers
+def cache_key_builder(f, current_settings: 'Settings') -> str:
     key = {
         'module': f.__module__,
         'func': f.__name__,
-        'query_params': dict(request.query_params),
-        'X-EPIG-url': h.get('X-EPIG-url'),
-        'X-EPIG-event': h.get('X-EPIG-event'),
-        'X-EPIG-width': h.get('X-EPIG-width'),
-        'X-EPIG-height': h.get('X-EPIG-height'),
-        'X-EPIG-qs': h.get('X-EPIG-qs')
+        **current_settings.asdict()
     }
     return hashlib.md5(json.dumps(key).encode("utf-8")).hexdigest()
 
 
-@app.route("/", methods=["GET"])
-@cached(
-    namespace="epig",
-    ttl=settings.CACHE_TTL,
-    alias='default',
-    key_builder=cache_key_builder
-)
-async def preview(request: 'Request'):
-    if settings.USE_HEADERS:
-        h = Config(environ=request.headers)
-        settings.SITE_URL = h('x-epig-url', cast=URL, default=str(settings.SITE_URL))
-        settings.EVENT_NAME = h('x-epig-event', cast=str, default=settings.EVENT_NAME)
-        settings.WIDTH = h('x-epig-width', cast=int, default=settings.WIDTH)
-        settings.HEIGHT = h('x-epig-height', cast=int, default=settings.HEIGHT)
-        settings.QS = h('x-epig-qs', cast=QueryParams, default=str(settings.QS))
+async def default_image(default_image_url: URL):
+    if default_image_url:
+        return RedirectResponse(url=default_image_url, status_code=307)
+    raise HTTPException(status_code=404)
 
-    # Fix problem with DNS
-    ip_addr = socket.gethostbyname(settings.CHROMIUM_HOST)
 
+async def screenshot(current_settings: 'Settings') -> bytes:
+    # Fix problem with DNS. Chromium debug protocol refuses access by dns name
+    ip_addr = socket.gethostbyname(current_settings.CHROMIUM_HOST)
+
+    epig = await EventPreviewImageGenerator.create(
+        # str(URL(scheme='http', hostname=current_settings.CHROMIUM_HOST, port=current_settings.CHROMIUM_PORT)),
+        str(URL(scheme='http', hostname=ip_addr, port=current_settings.CHROMIUM_PORT)),
+        current_settings.WIDTH,
+        current_settings.HEIGHT,
+        timeout=current_settings.TIMEOUT,
+        debug=current_settings.DEBUG
+    )
     try:
-        epig = await EventPreviewImageGenerator.create(
-            # str(URL(scheme='http', hostname=settings.CHROMIUM_HOST, port=settings.CHROMIUM_PORT)),
-            str(URL(scheme='http', hostname=ip_addr, port=settings.CHROMIUM_PORT)),
-            settings.WIDTH,
-            settings.HEIGHT
+        return await epig.screenshot(
+            str(current_settings.SITE_URL),
+            event_name=current_settings.EVENT_NAME,
+            image_type=current_settings.IMAGE_FORMAT
         )
-    except BrowserError:
-        raise HTTPException(status_code=503)
-
-    try:
-        img = await epig.screenshot(
-            str(
-                settings.SITE_URL.include_query_params(
-                    **dict(request.query_params)
-                ).include_query_params(
-                    **dict(settings.QS)
-                )
-            ),
-            settings.EVENT_NAME
-        )
-        return Response(content=img, media_type="image/png")
-    except PageError:
-        raise HTTPException(status_code=404)
     finally:
         await epig.close()
+
+
+@app.route("/", methods=["GET"])
+async def preview(request: 'Request') -> 'Response':
+    current_settings = settings.copy()
+
+    # Rewrite variables by headers
+    if current_settings.USE_HEADERS:
+        headers = Config(environ=request.headers)
+        current_settings = Settings(
+            SITE_URL=headers('X-EPIG-url', cast=URL, default=str(Settings.SITE_URL)),
+            EVENT_NAME=headers('X-EPIG-event', cast=str, default=Settings.EVENT_NAME),
+            WIDTH=headers('X-EPIG-width', cast=int, default=Settings.WIDTH),
+            HEIGHT=headers('X-EPIG-height', cast=int, default=Settings.HEIGHT),
+            QS=headers('X-EPIG-qs', cast=QueryParams, default=str(Settings.QS))
+        )
+
+    # On empty query string and ALLOW_EMPTY_QS=False
+    if not current_settings.ALLOW_EMPTY_QS and not request.query_params:
+        return await default_image(current_settings.DEFAULT_IMAGE_URL)
+
+    # Update SITE_URL with query_string
+    current_settings.SITE_URL = current_settings.SITE_URL.include_query_params(
+        **dict(request.query_params)
+    ).include_query_params(
+        **dict(current_settings.QS)
+    )
+
+    # Add cache decorator if cache enabled
+    screenshot_cached = cached(
+        namespace="epig",
+        ttl=current_settings.CACHE_TTL,
+        alias='default',
+        key_builder=cache_key_builder
+    )(screenshot) if current_settings.CACHE_URL != '' else lambda *args, **kwargs: screenshot(*args, **kwargs)
+
+    try:
+        img = await screenshot_cached(current_settings)
+        return Response(content=img)
+    except BrowserError:
+        raise HTTPException(status_code=503)
+    except PageError:
+        raise HTTPException(status_code=404)
+    except TimeoutError:
+        return await default_image(current_settings.DEFAULT_IMAGE_URL)
+
+
+@app.route("/health", methods=["GET"])
+async def health(request: 'Request') -> 'Response':
+    return PlainTextResponse('ok')
 
 
 if __name__ == '__main__':

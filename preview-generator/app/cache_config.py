@@ -4,7 +4,7 @@ from starlette.datastructures import URL
 def cache_config(cache_url: URL, password: str = None) -> dict:
     serializer = {'class': 'aiocache.serializers.PickleSerializer'}
     configs = {
-        'default': {
+        'memory': {
             'cache': 'aiocache.SimpleMemoryCache',
             'serializer': serializer
         },
@@ -23,5 +23,5 @@ def cache_config(cache_url: URL, password: str = None) -> dict:
         }
     }
     return {
-        'default': configs[cache_url.scheme.lower() or 'default']
+        'default': configs[cache_url.scheme.lower()]
     }

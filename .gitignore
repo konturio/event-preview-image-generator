@@ -1,11 +1,9 @@
 venv
-chromium-headless/share
 chromium-headless/cache
+chromium-headless/share
 preview-generator/.env
 examples/docker-compose/.env
 examples/docker-compose/chromium-cache
-examples/docker-compose/dbus-socket
-examples/docker-compose/fonts-cache
 examples/docker-compose/redis-data
+examples/docker-compose/tmp
 examples/k8s/configmap.yml
-examples/k8s/volume

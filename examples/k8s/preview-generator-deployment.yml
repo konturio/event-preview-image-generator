@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
+    project: epig
     app: preview-generator
   name: preview-generator
 spec:
@@ -14,6 +15,7 @@ spec:
   template:
     metadata:
       labels:
+        project: epig
         app: preview-generator
     spec:
       containers:
@@ -23,9 +25,27 @@ spec:
           envFrom:
             - configMapRef:
                 name: epig-config
+          env:
+            - name: CACHE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-secret
+                  key: password
           ports:
-            - containerPort: 9222
+            - containerPort: 8000
           resources: { }
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            timeoutSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            timeoutSeconds: 10
           securityContext:
-            readOnlyRootFilesystem: true
+            readOnlyRootFilesystem: false
       restartPolicy: Always

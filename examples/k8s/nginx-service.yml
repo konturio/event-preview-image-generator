@@ -3,6 +3,7 @@ apiVersion: v1
 metadata:
   name: nginx
   labels:
+    project: epig
     app: nginx
 spec:
   type: LoadBalancer

@@ -36,6 +36,7 @@ Generate password for redis
 
 ```shell
 kubectl create secret generic redis-secret --from-literal=password=$(head -c 512 /dev/urandom | LC_CTYPE=C tr -cd 'a-zA-Z0-9' | head -c 64)
+kubectl label secret redis-secret project=epig
 ```
 
 Build local images
@@ -50,6 +51,7 @@ Create nginx configmaps
 ```shell
 kubectl create configmap nginx-html --from-file=nginx/html
 kubectl create configmap nginx-template --from-file=nginx/templates/
+kubectl label configmap nginx-html nginx-template project=epig
 ```
 
 Apply k8s config
@@ -97,3 +99,17 @@ To test WebGL support use the link `https://<lhrtunnel.link>/webgl.png`.
 
 You can test social media preview by sending the tunnel link (https://<lhrtunnel.link>) to https://www.opengraph.xyz.
 Event name and preview size can be passed to query_string.
+
+## Cleanup
+
+### Docker-compose
+
+```shell
+docker-compose -p epig rm -f -s -v
+```
+
+### Minikube
+
+```shell
+kubectl delete services,deployments,configmaps,secrets -l project=epig
+```

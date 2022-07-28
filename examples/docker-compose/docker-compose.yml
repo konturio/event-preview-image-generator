@@ -12,21 +12,25 @@ services:
       - CHROMIUM_WIDTH
       - CHROMIUM_HEIGHT
       - CHROMIUM_CACHE_SIZE
+    read_only: true
     volumes:
       - './chromium-cache:/app/cache'
+      - './tmp:/tmp'
   redis:
     container_name: redis
     image: "redis:7-alpine3.16"
     command: /usr/local/etc/redis/redis.conf --requirepass ${CACHE_PASSWORD}
     ports:
       - "6379:6379"
+    read_only: true
     volumes:
       - './redis-data:/data'
-      - './redis.conf:/usr/local/etc/redis/redis.conf'
+      - './redis.conf:/usr/local/etc/redis/redis.conf:ro'
   memcached:
     container_name: memcached
     image: "memcached:1.6.15-alpine3.16"
     command: --memory-limit 64
+    read_only: true
     ports:
       - "11211:11211"
   preview-generator:
@@ -49,9 +53,13 @@ services:
       - WIDTH
       - HEIGHT
       - QS
+      - ALLOW_EMPTY_QS
+      - DEFAULT_IMAGE_URL
+      - IMAGE_FORMAT=${IMAGE_FORMAT:-png}
       - TIMEOUT=${TIMEOUT:-30000}
       - CACHE_TTL=${CACHE_TTL:-10}
       - DEBUG=${DEBUG:-FALSE}
+    read_only: true
     depends_on:
       - chromium-headless
       - redis
@@ -60,14 +68,15 @@ services:
     container_name: nginx
     image: nginx:stable-alpine
     volumes:
-      - ../nginx/templates:/etc/nginx/templates:ro
-      - ../nginx/html:/etc/nginx/html:ro
+      - "../nginx/templates:/etc/nginx/templates:ro"
+      - "../nginx/html:/etc/nginx/html:ro"
     ports:
       - "${NGINX_PORT}:${NGINX_PORT}"
     environment:
       - NGINX_HOST=${NGINX_HOST:-localhost}
       - NGINX_PORT=${NGINX_PORT:-80}
       - PORT
+    read_only: false
     depends_on:
       - preview-generator
 volumes:

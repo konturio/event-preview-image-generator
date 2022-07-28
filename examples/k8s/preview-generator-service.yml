@@ -3,6 +3,7 @@ apiVersion: v1
 metadata:
   name: preview-generator
   labels:
+    project: epig
     app: preview-generator
 spec:
   ports:

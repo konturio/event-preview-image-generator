@@ -1,17 +1,3 @@
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  labels:
-    app: chromium-headless-cache
-  name: chromium-headless-cache
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 100Mi
-  storageClassName: manual
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -54,16 +40,25 @@ spec:
             timeoutSeconds: 10
           volumeMounts:
             - mountPath: /app/cache
-              name: chromium-headless-cache
+              name: chromium-cache
             - mountPath: /tmp
-              name: chromium-headless-cache
+              name: tmp
+            - mountPath: /var/run/dbus/
+              name: dbus-socket
+            - mountPath: /var/cache/fontconfig/
+              name: fonts-cache
           securityContext:
             readOnlyRootFilesystem: true
       restartPolicy: Always
       volumes:
-        - name: chromium-headless-cache
-          persistentVolumeClaim:
-            claimName: chromium-headless-cache
+        - name: chromium-cache
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+        - name: dbus-socket
+          emptyDir: {}
+        - name: fonts-cache
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service

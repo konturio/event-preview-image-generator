@@ -59,6 +59,10 @@ mkdir -p cache
 docker run --rm -it -p 9222:9222 -e CHROMIUM_PORT=9222 -e CHROMIUM_CACHE_SIZE=104857600 -v $(pwd)/cache:/app/cache --name chromium-headless chromium-headless
 ```
 
+#### NOTE
+
+Chrome Debugging Protocol is available only by IP address
+
 ## Testing
 
 ### Remote debugging protocol
