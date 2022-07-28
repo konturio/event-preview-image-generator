@@ -45,8 +45,6 @@ spec:
               name: tmp
             - mountPath: /var/run/dbus/
               name: dbus-socket
-            - mountPath: /var/cache/fontconfig/
-              name: fonts-cache
           securityContext:
             readOnlyRootFilesystem: true
       restartPolicy: Always

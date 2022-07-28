@@ -98,7 +98,6 @@ Install requirements
 
 ```shell
 pip install -r requirements.txt
-pip install -r requirements.local.txt
 ```
 
 Run server
@@ -111,6 +110,10 @@ python3 app/main.py
 ### Docker
 
 Override `CHROMIUM_HOST` variable to `chromium`
+
+```shell
+find ./.env -type f -exec sed -i '' -e 's/CHROMIUM_HOST=localhost/CHROMIUM_HOST=chromium/g' {} \;
+```
 
 Build image
 

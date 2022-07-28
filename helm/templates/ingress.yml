@@ -1,0 +1,35 @@
+{{ if ne .Values.ENV_NAME "local" }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.envName }}-epig
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: epig
+    app.kubernetes.io/instance: {{ .Values.envName }}-epig
+    app.kubernetes.io/version: {{ .Chart.Version }}
+    app.kubernetes.io/managed-by: "Helm"
+    stage: {{ .Values.envName }}
+  annotations:
+    meta.helm.sh/release-name: {{ .Release.Name }}
+    meta.helm.sh/release-namespace: {{ .Release.Namespace }}
+    cert-manager.io/cluster-issuer: letsencrypt-staging #use letsencrypt-staging for testing
+    acme.cert-manager.io/http01-edit-in-place: "true" #required otherwise ACME challenge can't be completed
+spec:
+  tls:
+    - hosts:
+        - {{ .Values.dnsName1 }}
+      secretName: {{ .Values.envName }}-epig-tls
+  ingressClassName: nginx
+  rules:
+    - host: {{ .Values.dnsName1 }}
+      http:
+        paths:
+          - path: /active/preview.png
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.envName }}-epig
+                port:
+                  number: {{ .Values.PORT }}
+{{ end }}

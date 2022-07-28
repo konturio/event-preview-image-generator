@@ -23,7 +23,6 @@ Run Minikube
 ```shell
 minikube start
 minikube addons enable ingress
-minikube addons enable ingress-dns
 ```
 
 Copy configmap example and edit new file

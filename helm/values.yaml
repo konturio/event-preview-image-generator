@@ -1,0 +1,27 @@
+EVENT_NAME: "event_ready_for_screenshot"
+DEFAULT_IMAGE: ""
+IMAGE_FORMAT: png
+PORT: "8000"
+WIDTH: 1200
+HEIGHT: 630
+CHROMIUM_HOST: "chromium-headless"
+CHROMIUM_PORT: 9222
+CHROMIUM_CACHE_SIZE: 104857600
+CACHE_PASSWORD: MjZza2FRd0dJRmd1QzNtaHVtVFlXVkNWRkIwS3JqNVZqeFZUSEdUenY2VlQxUlFlRGNVZlJMa0pPNnVRdGpwVA==
+
+containers:
+  chromium_headless:
+    replicas: 1
+    repository: chromium-headless
+    pullPolicy: Always
+    tag: ""
+  preview_generator:
+    replicas: 1
+    repository: preview-generator
+    pullPolicy: Always
+    tag: ""
+  redis:
+    replicas: 1
+    repository: redis
+    pullPolicy: Always
+    tag: "7-alpine3.16"
