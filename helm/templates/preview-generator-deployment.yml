@@ -41,7 +41,7 @@ spec:
     spec:
       containers:
       - name: preview-generator
-        image: {{ .Values.containers.preview_generator.repository }}:latest
+        image: {{ .Values.containers.preview_generator.repository }}:{{ .Values.containers.preview_generator.tag }}
         imagePullPolicy: {{ .Values.containers.preview_generator.pullPolicy }}
         envFrom:
           - configMapRef:
