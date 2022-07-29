@@ -45,9 +45,6 @@ variables:
       --dockerfile "${CI_PROJECT_DIR}/${CONTEXT}/Dockerfile"
       --destination "${NEXUS_HOST}/konturdev/${NAME}:${VERSION}"
       ${KANIKO_ARGS}
-  rules:
-    - exists:
-        - ${CI_PROJECT_DIR}/${CONTEXT}/Dockerfile
 
 .base_deploy: &base_deploy
   stage: deploy
