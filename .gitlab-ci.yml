@@ -75,6 +75,7 @@ deploy-dev:
   <<: *base_deploy
   variables:
     STAGE: dev
+    USER: azapasnik@kontur.io
   rules:
     - when: manual
 #    - if: ${CI_COMMIT_BRANCH} == 'main'
