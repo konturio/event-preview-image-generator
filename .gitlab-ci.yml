@@ -1,87 +1,81 @@
 stages:
-  - build
+  - build-images
   - deploy
-
-.default-job-settings:
-  tags:
-    - kontur
-    - docker
 
 variables:
   NEXUS_HOST: nexus.kontur.io:8085
+  KUBECFG_FILE: ${KUBECFG_FILE}/helm/kubeconfig.yml
+  CERT_AUTH: ${K8S_CERT_AUTH}
+  CLIENT_CERT: ${K8S_CLIENT_CERT_DEV}
+  CLIENT_KEY: ${K8S_CLIENT_KEY_DEV}
 
-build-chromium-headless-job:
-  extends: .default-job-settings
-  stage: build
+.kaniko-build-template: &kaniko-build-template
+  variables:
+    KANIKO_ARGS: ""
+  stage: build-images
   image:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [ "" ]
-  script:
+  before_script:
+    # Nexus registry auth
     - mkdir -p /kaniko/.docker
     - echo "{\"auths\":{\"${NEXUS_HOST}\":{\"auth\":\"$(printf "%s:%s" "${NEXUS_DEPLOYER}" "${NEXUS_DEPLOYER_PASS}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
-    - >-
-      /kaniko/executor
-      --context "${CI_PROJECT_DIR}/chromium-headless"
-      --dockerfile "${CI_PROJECT_DIR}/chromium-headless/Dockerfile"
-      --destination "${NEXUS_HOST}/konturdev/chromium-headless:${CI_COMMIT_TAG}"
-    - >-
-      /kaniko/executor
-      --context "${CI_PROJECT_DIR}/chromium-headless"
-      --dockerfile "${CI_PROJECT_DIR}/chromium-headless/Dockerfile"
-      --destination "${NEXUS_HOST}/konturdev/chromium-headless:latest"
-  when: manual
-
-build-preview-generator-job:
-  extends: .default-job-settings
-  stage: build
-  image:
-    name: gcr.io/kaniko-project/executor:debug
-    entrypoint: [ "" ]
   script:
-    - mkdir -p /kaniko/.docker
-    - echo "{\"auths\":{\"${NEXUS_HOST}\":{\"auth\":\"$(printf "%s:%s" "${NEXUS_DEPLOYER}" "${NEXUS_DEPLOYER_PASS}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
+    # Compose docker tag name
+    # Git Branch/Tag to Docker Image Tag Mapping
+    #   * Default Branch: main -> latest
+    #   * Branch: feature/my-feature -> branch-feature-my-feature
+    #   * Tag: v1.0.0/beta2 -> v1.0.0-beta2
+    - |
+      if [ "${CI_COMMIT_REF_NAME}" = ${CI_DEFAULT_BRANCH} ]; then
+        VERSION="latest"
+      elif [ -n "${CI_COMMIT_TAG}" ];then
+        NOSLASH=$(echo "${CI_COMMIT_TAG}" | tr -s / - )
+        SANITIZED="${NOSLASH//[^a-zA-Z0-9\-\.]/}"
+        VERSION="${SANITIZED}"
+      else \
+        NOSLASH=$(echo "${CI_COMMIT_REF_NAME}" | tr -s / - )
+        SANITIZED="${NOSLASH//[^a-zA-Z0-9\-]/}"
+        VERSION="branch-${SANITIZED}"
+      fi
+    - echo version=${VERSION}
     - >-
       /kaniko/executor
-      --context "${CI_PROJECT_DIR}/preview-generator"
-      --dockerfile "${CI_PROJECT_DIR}/preview-generator/Dockerfile"
-      --destination "${NEXUS_HOST}/konturdev/preview-generator:${CI_COMMIT_TAG}"
-    - >-
-      /kaniko/executor
-      --context "${CI_PROJECT_DIR}/preview-generator"
-      --dockerfile "${CI_PROJECT_DIR}/preview-generator/Dockerfile"
-      --destination "${NEXUS_HOST}/konturdev/preview-generator:latest"
-  when: manual
+      --context "${CI_PROJECT_DIR}/${CONTEXT}"
+      --dockerfile "${CI_PROJECT_DIR}/${CONTEXT}/Dockerfile"
+      --destination "${NEXUS_HOST}/konturdev/${NAME}:${VERSION}"
+      ${KANIKO_ARGS}
+  rules:
+    - exists:
+        - ${CI_PROJECT_DIR}/${CONTEXT}/Dockerfile
 
-deploy-dn-dev:
-  extends: .default-job-settings
+.base_deploy: &base_deploy
   stage: deploy
+  variables:
+    USER: ${STAGE}-epig@kontur.io
   script:
-    - kubectl create secret generic redis-secret --from-literal=password=$(head -c 512 /dev/urandom | LC_CTYPE=C tr -cd 'a-zA-Z0-9' | head -c 64)
-    - >-
-      kubectl apply -f- <<EOF
-      apiVersion: v1
-      kind: ConfigMap
-      metadata:
-        name: epig-config
-      data:
-        CHROMIUM_HOST: "chromium-headless"
-        CHROMIUM_PORT: "9222"
-        CHROMIUM_CACHE_SIZE: "104857600"
-        CHROMIUM_WIDTH: "1200"
-        CHROMIUM_HEIGHT: "630"
-        USE_HEADERS: "FALSE"
-        SITE_URL: "https://test-apps-ninja02.konturlabs.com/active/"
-        EVENT_NAME: "event_ready_for_screenshot"
-        WIDTH: "1200"
-        HEIGHT: "630"
-        QS: "app=f29339bd-8049-41ae-9d6b-f726d8451894"
-        TIMEOUT: "60000"
-        CACHE_URL: "redis://redis:6379"
-        CACHE_PASSWORD: "redis_password"
-        CACHE_TTL: "120"
-        DEBUG: "FALSE"
-        PORT: "8000"
-      EOF
-    - kubectl apply -f ./k8s/
-  when: manual
+  - KUBECTL_OPTS="--kubeconfig ${KUBECFG_FILE} -n ${STAGE}-epig"
+  - kubectl --context ${STAGE} ${KUBECTL_OPTS} config set clusters.${STAGE}.certificate-authority-data ${CERT_AUTH}
+  - kubectl --context ${STAGE} ${KUBECTL_OPTS} config set users.${USER}.client-key-data ${CLIENT_KEY}
+  - kubectl --context ${STAGE} ${KUBECTL_OPTS} config set users.${USER}.client-certificate-data ${CLIENT_CERT}
+  - helm --kube-context ${STAGE} ${KUBECTL_OPTS} upgrade epig ./helm --install --values=./helm/values.yml --values=./helm/values/values-${STAGE}.yml -n ${STAGE}-epig --create-namespace
 
+build-chromium-headless:
+  <<: *kaniko-build-template
+  variables:
+    NAME: chromium-headless
+    CONTEXT: chromium-headless
+
+build-preview-generator:
+  <<: *kaniko-build-template
+  variables:
+    NAME: preview-generator
+    CONTEXT: preview-generator
+
+deploy-dev:
+  <<: *base_deploy
+  variables:
+    STAGE: dev
+  rules:
+    - if: ${CI_COMMIT_BRANCH} == 'main'
+      when: always
