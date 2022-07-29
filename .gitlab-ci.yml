@@ -2,6 +2,11 @@ stages:
   - build
   - deploy
 
+.default-job-settings:
+  tags:
+    - kontur
+    - docker
+
 variables:
   NEXUS_HOST: nexus.kontur.io:8085
 
