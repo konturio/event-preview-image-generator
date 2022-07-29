@@ -44,6 +44,7 @@ variables:
       --context "${CI_PROJECT_DIR}/${CONTEXT}"
       --dockerfile "${CI_PROJECT_DIR}/${CONTEXT}/Dockerfile"
       --destination "${NEXUS_HOST}/konturdev/${NAME}:${VERSION}"
+      --destination "${NEXUS_HOST}/konturdev/${NAME}:latest"
       ${KANIKO_ARGS}
   rules:
     - when: manual
