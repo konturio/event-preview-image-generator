@@ -50,8 +50,8 @@ variables:
 
 .base_deploy: &base_deploy
   stage: deploy
-  variables:
-    USER: ${STAGE}-epig@kontur.io
+#  variables:
+#    USER: ${STAGE}-epig@kontur.io
   script:
   - KUBECTL_OPTS="--kubeconfig ${KUBECFG_FILE} -n ${STAGE}-epig"
   - kubectl --context ${STAGE} ${KUBECTL_OPTS} config set clusters.${STAGE}.certificate-authority-data ${CERT_AUTH}
