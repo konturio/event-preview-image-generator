@@ -6,8 +6,6 @@ variables:
   NEXUS_HOST: nexus.kontur.io:8085
   KUBECFG_FILE: ${KUBECFG_FILE}/helm/kubeconfig.yml
   CERT_AUTH: ${K8S_CERT_AUTH}
-  CLIENT_CERT: ${K8S_CLIENT_CERT_DEV}
-  CLIENT_KEY: ${K8S_CLIENT_KEY_DEV}
 
 .kaniko-build-template: &kaniko-build-template
   variables:
@@ -76,7 +74,8 @@ deploy-dev:
   <<: *base_deploy
   variables:
     STAGE: dev
+    CLIENT_KEY: ${K8S_CLIENT_KEY_DEV}
+    CLIENT_CERT: ${K8S_CLIENT_CERT_DEV}
   rules:
     - when: manual
-#    - if: ${CI_COMMIT_BRANCH} == 'main'
 
