@@ -18,11 +18,11 @@ metadata:
 spec:
   tls:
     - hosts:
-      - {{ .Values.envName }}-epig.k8s-01.konturlabs.com
+      - {{ .Values.ENV_NAME }}-epig.k8s-01.konturlabs.com
       secretName: {{ .Values.ENV_NAME }}-epig-tls
   ingressClassName: nginx
   rules:
-    - host: {{ .Values.dnsName1 }}
+    - host: {{ .Values.ENV_NAME }}-epig.k8s-01.konturlabs.com
       http:
         paths:
           - path: /active/preview.png
