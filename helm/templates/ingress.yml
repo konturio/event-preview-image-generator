@@ -25,7 +25,7 @@ spec:
     - host: {{ .Values.ENV_NAME }}-epig.k8s-01.konturlabs.com
       http:
         paths:
-          - path: /
+          - path: /active/preview.png
             pathType: Prefix
             backend:
               service:
