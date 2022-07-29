@@ -66,7 +66,7 @@ async def screenshot(current_settings: 'Settings') -> bytes:
         await epig.close()
 
 
-@app.route("/", methods=["GET"])
+@app.route("/active/preview.png", methods=["GET"])
 async def preview(request: 'Request') -> 'Response':
     current_settings = settings.copy()
 
