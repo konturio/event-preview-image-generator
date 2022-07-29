@@ -47,6 +47,7 @@ variables:
       ${KANIKO_ARGS}
   rules:
     - when: manual
+
 .base_deploy: &base_deploy
   stage: deploy
   variables:
