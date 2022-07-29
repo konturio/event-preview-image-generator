@@ -41,7 +41,7 @@ spec:
     spec:
       containers:
         - name: chromium-headless
-          image: {{ .Values.containers.chromium_headless.repository }}:latest
+          image: {{ .Values.containers.chromium_headless.repository }}:{{ .Values.containers.chromium_headless.tag }}
           imagePullPolicy: {{ .Values.containers.chromium_headless.pullPolicy }}
           envFrom:
             - configMapRef:

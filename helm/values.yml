@@ -12,14 +12,14 @@ CACHE_PASSWORD: MjZza2FRd0dJRmd1QzNtaHVtVFlXVkNWRkIwS3JqNVZqeFZUSEdUenY2VlQxUlFl
 containers:
   chromium_headless:
     replicas: 1
-    repository: chromium-headless
+    repository: nexus.kontur.io:8085/konturdev/chromium-headless
     pullPolicy: Always
-    tag: ""
+    tag: "latest"
   preview_generator:
     replicas: 1
-    repository: preview-generator
+    repository: nexus.kontur.io:8085/konturdev/preview-generator
     pullPolicy: Always
-    tag: ""
+    tag: "latest"
   redis:
     replicas: 1
     repository: redis

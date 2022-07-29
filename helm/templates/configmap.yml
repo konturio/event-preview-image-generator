@@ -21,7 +21,7 @@ data:
   EVENT_NAME: "{{ .Values.EVENT_NAME }}"
   WIDTH: "{{ .Values.WIDTH }}"
   HEIGHT: "{{ .Values.HEIGHT }}"
-  QS: "app={{ .Values.APP_ID }}"
+  QS: "app={{ .Values.APP_ID }}&feed=kontur-public"
   TIMEOUT: "{{ .Values.TIMEOUT }}"
   DEFAULT_IMAGE: "{{ .Values.DEFAULT_IMAGE }}"
   ALLOW_EMPTY_QS: "FALSE"

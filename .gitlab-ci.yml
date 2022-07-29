@@ -4,7 +4,7 @@ stages:
 
 variables:
   NEXUS_HOST: nexus.kontur.io:8085
-  KUBECFG_FILE: ${KUBECFG_FILE}/helm/kubeconfig.yml
+  KUBECFG_FILE: ./helm/kubeconfig.yml
   CERT_AUTH: ${K8S_CERT_AUTH}
 
 .kaniko-build-template: &kaniko-build-template
@@ -42,21 +42,21 @@ variables:
       --context "${CI_PROJECT_DIR}/${CONTEXT}"
       --dockerfile "${CI_PROJECT_DIR}/${CONTEXT}/Dockerfile"
       --destination "${NEXUS_HOST}/konturdev/${NAME}:${VERSION}"
+      --destination "${NEXUS_HOST}/konturdev/${NAME}:latest"
       ${KANIKO_ARGS}
-  #rules:
-  #  - exists:
-  #      - ${CI_PROJECT_DIR}/${CONTEXT}/Dockerfile
+  rules:
+    - when: manual
 
 .base_deploy: &base_deploy
   stage: deploy
-  variables:
-    USER: ${STAGE}-epig@kontur.io
+#  variables:
+#    USER: ${STAGE}-epig@kontur.io
   script:
   - KUBECTL_OPTS="--kubeconfig ${KUBECFG_FILE} -n ${STAGE}-epig"
   - kubectl --context ${STAGE} ${KUBECTL_OPTS} config set clusters.${STAGE}.certificate-authority-data ${CERT_AUTH}
   - kubectl --context ${STAGE} ${KUBECTL_OPTS} config set users.${USER}.client-key-data ${CLIENT_KEY}
   - kubectl --context ${STAGE} ${KUBECTL_OPTS} config set users.${USER}.client-certificate-data ${CLIENT_CERT}
-  - helm --kube-context ${STAGE} ${KUBECTL_OPTS} upgrade epig ./helm --install --values=./helm/values.yml --values=./helm/values/values-${STAGE}.yml -n ${STAGE}-epig --create-namespace
+  - helm --kube-context ${STAGE} ${KUBECTL_OPTS} upgrade epig ./helm --install --values=./helm/values.yml --values=./helm/values/values-${STAGE}.yml
 
 build-chromium-headless:
   <<: *kaniko-build-template
@@ -76,6 +76,7 @@ deploy-dev:
     STAGE: dev
     CLIENT_KEY: ${K8S_CLIENT_KEY_DEV}
     CLIENT_CERT: ${K8S_CLIENT_CERT_DEV}
+    USER: azapasnik@kontur.io
   rules:
     - when: manual
 
