@@ -77,5 +77,6 @@ deploy-dev:
   variables:
     STAGE: dev
   rules:
-    - if: ${CI_COMMIT_BRANCH} == 'main'
-      when: always
+    - when: manual
+#    - if: ${CI_COMMIT_BRANCH} == 'main'
+
