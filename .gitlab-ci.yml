@@ -17,30 +17,19 @@ build-chromium-headless-job:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [ "" ]
   script:
-    - docker build -t ${NEXUS_HOST}/konturdev/chromium-headless:latest -t ${NEXUS_HOST}/konturdev/chromium-headless:${CI_COMMIT_TAG} chromium-headless/
-    - docker push ${NEXUS_HOST}/konturdev/chromium-headless
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"${NEXUS_HOST}\":{\"auth\":\"$(printf "%s:%s" "${NEXUS_DEPLOYER}" "${NEXUS_DEPLOYER_PASS}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
+    - >-
+      /kaniko/executor
+      --context "${CI_PROJECT_DIR}/chromium-headless"
+      --dockerfile "${CI_PROJECT_DIR}/chromium-headless/Dockerfile"
+      --destination "${NEXUS_HOST}/konturdev/chromium-headless:${CI_COMMIT_TAG}"
+    - >-
+      /kaniko/executor
+      --context "${CI_PROJECT_DIR}/chromium-headless"
+      --dockerfile "${CI_PROJECT_DIR}/chromium-headless/Dockerfile"
+      --destination "${NEXUS_HOST}/konturdev/chromium-headless:latest"
   when: manual
-
-#build-chromium-headless-job:
-#  extends: .default-job-settings
-#  stage: build
-#  image:
-#    name: gcr.io/kaniko-project/executor:debug
-#    entrypoint: [ "" ]
-#  script:
-#    - mkdir -p /kaniko/.docker
-#    - echo "{\"auths\":{\"${NEXUS_HOST}\":{\"auth\":\"$(printf "%s:%s" "${NEXUS_DEPLOYER}" "${NEXUS_DEPLOYER_PASS}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
-#    - >-
-#      /kaniko/executor
-#      --context "${CI_PROJECT_DIR}/chromium-headless"
-#      --dockerfile "${CI_PROJECT_DIR}/chromium-headless/Dockerfile"
-#      --destination "${NEXUS_HOST}/konturdev/chromium-headless:${CI_COMMIT_TAG}"
-#    - >-
-#      /kaniko/executor
-#      --context "${CI_PROJECT_DIR}/chromium-headless"
-#      --dockerfile "${CI_PROJECT_DIR}/chromium-headless/Dockerfile"
-#      --destination "${NEXUS_HOST}/konturdev/chromium-headless:latest"
-#  when: manual
 
 build-preview-generator-job:
   extends: .default-job-settings
