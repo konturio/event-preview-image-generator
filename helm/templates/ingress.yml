@@ -29,7 +29,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: {{ .Values.ENV_NAME }}-epig
+                name: {{ .Values.ENV_NAME }}-preview-generator
                 port:
                   number: {{ .Values.PORT }}
 {{ end }}
