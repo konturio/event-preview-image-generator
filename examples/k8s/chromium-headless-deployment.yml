@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    project: epig
+    app: chromium-headless
+  name: chromium-headless
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chromium-headless
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        project: epig
+        app: chromium-headless
+    spec:
+      containers:
+        - name: chromium-headless
+          image: chromium-headless:latest
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: epig-config
+          ports:
+            - containerPort: 9222
+          resources: {}
+          livenessProbe:
+            httpGet:
+              path: /json
+              port: 9222
+            initialDelaySeconds: 10
+            timeoutSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /json
+              port: 9222
+            initialDelaySeconds: 10
+            timeoutSeconds: 10
+          volumeMounts:
+            - mountPath: /app/cache
+              name: chromium-cache
+            - mountPath: /tmp
+              name: tmp
+            - mountPath: /var/run/dbus/
+              name: dbus-socket
+            - mountPath: /var/cache/fontconfig/
+              name: fonts-cache
+          securityContext:
+            readOnlyRootFilesystem: false
+      restartPolicy: Always
+      volumes:
+        - name: chromium-cache
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+        - name: dbus-socket
+          emptyDir: {}
+        - name: fonts-cache
+          emptyDir: {}

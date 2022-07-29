@@ -1,0 +1,57 @@
+upstream preview-generator {
+    server preview-generator:${PORT};
+}
+
+server {
+    listen ${NGINX_PORT};
+
+    # Test Opengraph protocol
+    location / {
+        try_files $uri $uri/index.html $uri.html =404;
+        ssi on;
+        set $og_url https://$host;
+        if ($host = localhost) {
+            set $og_url $og_url:$server_port;
+        }
+        set $og_image $og_url/preview.png?$query_string;
+    }
+
+    # Preview of root page
+    location /preview.png {
+        proxy_method GET;
+        proxy_set_header X-EPIG-URL $scheme://$host/;
+        proxy_set_header X-EPIG-EVENT $arg_event;
+        proxy_set_header X-EPIG-WIDTH $arg_width;
+        proxy_set_header X-EPIG-HEIGHT $arg_height;
+        proxy_pass http://preview-generator/;
+    }
+
+    # Test WebGL support
+    location /webgl.png {
+        proxy_set_header X-EPIG-URL 'https://browserleaks.com/webgl';
+        proxy_set_header X-EPIG-EVENT 'load';
+        proxy_set_header X-EPIG-WIDTH 1200;
+        proxy_set_header X-EPIG-HEIGHT 630;
+        proxy_pass http://preview-generator/;
+    }
+
+    # Google test
+    location /google.png {
+        proxy_set_header X-EPIG-URL 'https://google.com/';
+        proxy_set_header X-EPIG-EVENT 'load';
+        proxy_set_header X-EPIG-WIDTH 1200;
+        proxy_set_header X-EPIG-HEIGHT 630;
+        #proxy_set_header X-EPIG-QS 'q=search+text';
+        proxy_pass http://preview-generator/;
+    }
+
+    # Test SITE_URL variable
+    location /site_url.png {
+        proxy_pass http://preview-generator/;
+    }
+
+    # Health check
+    location /health {
+        proxy_pass http://preview-generator;
+    }
+}

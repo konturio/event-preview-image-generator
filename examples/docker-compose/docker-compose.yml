@@ -1,0 +1,86 @@
+version: "3"
+services:
+  chromium-headless:
+    container_name: chromium-headless
+    build:
+      context: ../../chromium-headless/
+    ports:
+      - "${CHROMIUM_PORT}:${CHROMIUM_PORT}"
+    environment:
+      - CHROMIUM_ADDRESS=${CHROMIUM_ADDRESS:-0.0.0.0}
+      - CHROMIUM_PORT=${CHROMIUM_PORT:-9222}
+      - CHROMIUM_WIDTH
+      - CHROMIUM_HEIGHT
+      - CHROMIUM_CACHE_SIZE
+    read_only: false
+    volumes:
+      - './chromium-cache:/app/cache'
+      - './tmp:/tmp'
+  redis:
+    container_name: redis
+    image: "redis:7-alpine3.16"
+    command: /usr/local/etc/redis/redis.conf --requirepass ${CACHE_PASSWORD}
+    ports:
+      - "6379:6379"
+    read_only: true
+    volumes:
+      - './redis-data:/data'
+      - './redis.conf:/usr/local/etc/redis/redis.conf:ro'
+  memcached:
+    container_name: memcached
+    image: "memcached:1.6.15-alpine3.16"
+    command: --memory-limit 64
+    read_only: false
+    ports:
+      - "11211:11211"
+  preview-generator:
+    container_name: preview-generator
+    build:
+      context: ../../preview-generator/
+      args:
+        MEMCACHED_WORKAROUND: 0
+    ports:
+      - "${PORT}:${PORT}"
+    environment:
+      - CHROMIUM_HOST=chromium-headless
+      - CHROMIUM_PORT=${CHROMIUM_PORT:-9222}
+      - CACHE_URL=${CACHE_URL:-redis://redis:6379}
+      - CACHE_PASSWORD
+      - PORT
+      - SITE_URL
+      - EVENT_NAME=${EVENT_NAME:-load}
+      - USE_HEADERS=${USE_HEADERS:-FALSE}
+      - WIDTH
+      - HEIGHT
+      - QS
+      - ALLOW_EMPTY_QS
+      - DEFAULT_IMAGE_URL
+      - IMAGE_FORMAT=${IMAGE_FORMAT:-png}
+      - TIMEOUT=${TIMEOUT:-30000}
+      - CACHE_TTL=${CACHE_TTL:-10}
+      - DEBUG=${DEBUG:-FALSE}
+    read_only: false
+    depends_on:
+      - chromium-headless
+      - redis
+      - memcached
+  nginx:
+    container_name: nginx
+    image: nginx:stable-alpine
+    volumes:
+      - "../nginx/templates:/etc/nginx/templates:ro"
+      - "../nginx/html:/etc/nginx/html:ro"
+    ports:
+      - "${NGINX_PORT}:${NGINX_PORT}"
+    environment:
+      - NGINX_HOST=${NGINX_HOST:-localhost}
+      - NGINX_PORT=${NGINX_PORT:-80}
+      - PORT
+    read_only: false
+    depends_on:
+      - preview-generator
+volumes:
+  chromium-headless:
+    driver: local
+  redis:
+    driver: local
