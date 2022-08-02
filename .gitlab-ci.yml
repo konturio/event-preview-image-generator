@@ -49,8 +49,9 @@ variables:
 
 .base_deploy: &base_deploy
   stage: deploy
-  variables:
-    USER: ${STAGE}-epig@kontur.io
+  dependencies:
+    - build-chromium-headless
+    - build-preview-generator
   script:
   - KUBECTL_OPTS="--kubeconfig ${KUBECFG_FILE} -n ${STAGE}-epig"
   - kubectl --context ${STAGE} ${KUBECTL_OPTS} config set clusters.${STAGE}.certificate-authority-data ${CERT_AUTH}
@@ -74,8 +75,35 @@ deploy-dev:
   <<: *base_deploy
   variables:
     STAGE: dev
+    USER: dev-prvw-gen@kontur.io
     CLIENT_KEY: ${K8S_CLIENT_KEY_DEV}
     CLIENT_CERT: ${K8S_CLIENT_CERT_DEV}
   rules:
     - when: manual
+  environment:
+    name: K8S-DEV
 
+deploy-test:
+  <<: *base_deploy
+  variables:
+    STAGE: test
+    USER: test-prvw-gen@kontur.io
+    CLIENT_KEY: ${K8S_CLIENT_KEY_TEST}
+    CLIENT_CERT: ${K8S_CLIENT_CERT_TEST}
+  rules:
+    - when: manual
+  environment:
+    name: K8S-TEST
+
+deploy-prod:
+  <<: *base_deploy
+  variables:
+    STAGE: prod
+    USER: prod-prvw-gen@kontur.io
+    CLIENT_KEY: ${K8S_CLIENT_KEY_PROD}
+    CLIENT_CERT: ${K8S_CLIENT_CERT_PROD}
+  when: manual
+  environment:
+    name: K8S-PROD
+  only:
+    - /^release-.*$/
