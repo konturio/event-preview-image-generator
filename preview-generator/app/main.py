@@ -11,6 +11,7 @@ from starlette.exceptions import HTTPException
 from starlette.datastructures import QueryParams, URL
 from pyppeteer.errors import BrowserError, PageError
 from settings import Settings
+from secrets import Secrets
 from epig import EventPreviewImageGenerator, TimeoutError
 from cache_config import cache_config
 
@@ -18,6 +19,7 @@ if TYPE_CHECKING:
     from starlette.requests import Request
 
 settings = Settings()
+secrets = Secrets()
 
 LOGGER = logging.getLogger('uvicorn')
 LOGGER.setLevel(logging.DEBUG if settings.DEBUG else logging.INFO)
@@ -25,7 +27,7 @@ LOGGER.setLevel(logging.DEBUG if settings.DEBUG else logging.INFO)
 app = Starlette()
 
 if settings.CACHE_URL != '':
-    caches.set_config(cache_config(settings.CACHE_URL, settings.CACHE_PASSWORD))
+    caches.set_config(cache_config(settings.CACHE_URL, secrets.CACHE_PASSWORD))
 
 
 def cache_key_builder(f, current_settings: 'Settings') -> str:

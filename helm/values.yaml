@@ -7,8 +7,6 @@ HEIGHT: 630
 CHROMIUM_HOST: "chromium-headless"
 CHROMIUM_PORT: 9222
 CHROMIUM_CACHE_SIZE: 104857600
-#TODO CACHE_PASSWORD must be removed from git and different values must be used in stages (dev/test/prod)
-CACHE_PASSWORD: MjZza2FRd0dJRmd1QzNtaHVtVFlXVkNWRkIwS3JqNVZqeFZUSEdUenY2VlQxUlFlRGNVZlJMa0pPNnVRdGpwVA==
 
 containers:
   chromium_headless:

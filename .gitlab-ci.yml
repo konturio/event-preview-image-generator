@@ -57,7 +57,7 @@ variables:
   - kubectl --context ${STAGE} ${KUBECTL_OPTS} config set clusters.${STAGE}.certificate-authority-data ${CERT_AUTH}
   - kubectl --context ${STAGE} ${KUBECTL_OPTS} config set users.${USER}.client-key-data ${CLIENT_KEY}
   - kubectl --context ${STAGE} ${KUBECTL_OPTS} config set users.${USER}.client-certificate-data ${CLIENT_CERT}
-  - helm --kube-context ${STAGE} ${KUBECTL_OPTS} upgrade epig ./helm --install --values=./helm/values.yml --values=./helm/values/values-${STAGE}.yml
+  - helm --kube-context ${STAGE} ${KUBECTL_OPTS} upgrade ${STAGE}-epig ./helm --install --values=./helm/values.yaml --values=./helm/values/values-${STAGE}.yaml
 
 build-chromium-headless:
   <<: *kaniko-build-template

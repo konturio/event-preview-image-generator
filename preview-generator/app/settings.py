@@ -20,7 +20,6 @@ class Settings:
     IMAGE_FORMAT: str = 'png'
 
     CACHE_URL: URL = ''
-    CACHE_PASSWORD: str = None
     CACHE_TTL: int = 600  # in seconds
 
     DEBUG: bool = False
