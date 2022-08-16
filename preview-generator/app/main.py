@@ -1,5 +1,4 @@
 from typing import TYPE_CHECKING
-import logging
 import socket
 import hashlib
 import ujson as json
@@ -14,6 +13,7 @@ from settings import Settings
 from secrets import Secrets
 from epig import EventPreviewImageGenerator, TimeoutError
 from cache_config import cache_config
+from logger import LOGGER
 
 if TYPE_CHECKING:
     from starlette.requests import Request
@@ -21,8 +21,6 @@ if TYPE_CHECKING:
 settings = Settings()
 secrets = Secrets()
 
-LOGGER = logging.getLogger('uvicorn')
-LOGGER.setLevel(logging.DEBUG if settings.DEBUG else logging.INFO)
 
 app = Starlette()
 
