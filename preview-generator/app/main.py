@@ -10,7 +10,7 @@ from starlette.exceptions import HTTPException
 from starlette.datastructures import QueryParams, URL
 from pyppeteer.errors import BrowserError, PageError
 from settings import Settings
-from secrets import Secrets
+from secret import Secret
 from epig import EventPreviewImageGenerator, TimeoutError
 from cache_config import cache_config
 from logger import LOGGER
@@ -19,13 +19,13 @@ if TYPE_CHECKING:
     from starlette.requests import Request
 
 settings = Settings()
-secrets = Secrets()
+secret = Secret()
 
 
 app = Starlette()
 
 if settings.CACHE_URL != '':
-    caches.set_config(cache_config(settings.CACHE_URL, secrets.CACHE_PASSWORD))
+    caches.set_config(cache_config(settings.CACHE_URL, secret.CACHE_PASSWORD))
 
 
 def cache_key_builder(f, current_settings: 'Settings') -> str:
@@ -46,11 +46,13 @@ async def default_image(default_image_url: URL):
 async def screenshot(current_settings: 'Settings') -> bytes:
     # Fix problem with DNS. Chromium debug protocol refuses access by dns name
     ip_addr = socket.gethostbyname(current_settings.CHROMIUM_HOST)
+    browserUrl = str(URL(scheme='http', hostname=ip_addr, port=current_settings.CHROMIUM_PORT))
     LOGGER.debug('Resolved IP of chromium host %s', ip_addr)
+    LOGGER.debug('trying to connect to %s', browserUrl)
 
     epig = await EventPreviewImageGenerator.create(
         # str(URL(scheme='http', hostname=current_settings.CHROMIUM_HOST, port=current_settings.CHROMIUM_PORT)),
-        str(URL(scheme='http', hostname=ip_addr, port=current_settings.CHROMIUM_PORT)),
+        browserUrl,
         current_settings.WIDTH,
         current_settings.HEIGHT,
         timeout=current_settings.TIMEOUT,

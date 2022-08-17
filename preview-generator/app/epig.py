@@ -28,7 +28,8 @@ class EventPreviewImageGenerator(object):
             'defaultViewport': {
                 'width': width,
                 'height': height
-            }
+            },
+            'logLevel': 'DEBUG' if debug else 'INFO'
         })
 
         LOGGER.debug('Wait opened tab %s', browser_url)

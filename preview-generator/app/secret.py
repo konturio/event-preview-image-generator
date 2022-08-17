@@ -4,7 +4,7 @@ from starlette.config import Config
 
 
 @dataclass
-class Secrets:
+class Secret:
     CACHE_PASSWORD: str = None
 
     def __post_init__(self):
@@ -16,7 +16,7 @@ class Secrets:
             elif not isinstance(value, field.type):
                 setattr(self, field.name, field.type(value))
 
-    def copy(self) -> 'Secrets':
+    def copy(self) -> 'Secret':
         return replace(self)
 
     def asdict(self) -> Dict[str, str]:
