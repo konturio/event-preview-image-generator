@@ -46,12 +46,9 @@ spec:
           ports:
             - containerPort: 6379
           args: [ "/usr/local/etc/redis/redis.conf", "--requirepass", $(CACHE_PASSWORD) ]
-          env:
-            - name: CACHE_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.ENV_NAME }}-redis-secret
-                  key: password
+          envFrom:
+            - secretRef:
+                name: {{ .Values.ENV_NAME }}-redis-secret
           volumeMounts:
             - mountPath: /data
               name: data

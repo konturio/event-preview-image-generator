@@ -7,8 +7,9 @@ WORKDIR /app
 COPY ./requirements.txt /app/requirements.txt
 
 # Workaround to use memcached
-RUN if [ "${MEMCACHED_WORKAROUND}" = "1" ]; then apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*; fi
+RUN if [ "${MEMCACHED_WORKAROUND}" = "1" ]; then apt-get update && apt-get install -y git; fi
 
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*;
 RUN pip install --no-cache-dir --upgrade -r /app/requirements.txt
 
 COPY ./app /app

@@ -2,7 +2,7 @@ import asyncio
 from pyppeteer import connect
 from pyppeteer.page import Page
 from pyppeteer.errors import TimeoutError
-
+from logger import LOGGER
 
 class EventPreviewImageGenerator(object):
     __slots__ = '_page', '_event', '_timeout', '_debug'
@@ -21,19 +21,27 @@ class EventPreviewImageGenerator(object):
                      timeout: int = 10000,
                      debug: bool = False
                      ) -> 'EventPreviewImageGenerator':
+        LOGGER.debug('Wait connection to browser %s', browser_url)
+
         browser = await connect({
             'browserURL': browser_url,
             'defaultViewport': {
                 'width': width,
                 'height': height
-            }
+            },
+            'logLevel': 'DEBUG' if debug else 'INFO'
         })
+
+        LOGGER.debug('Wait opened tab %s', browser_url)
         page = await browser.newPage()
         instance = cls(page, timeout=timeout, debug=debug)
+        LOGGER.debug('Wait exposeFunction')
         await page.exposeFunction(
             'onCustomEvent',
             instance.fire
         )
+        LOGGER.debug('Connection done')
+
         return instance
 
     @staticmethod
@@ -54,11 +62,15 @@ class EventPreviewImageGenerator(object):
         await self._page.close(runBeforeUnload=False)
 
     async def screenshot(self, url: str, event_name: str = 'load', image_type: str = 'png') -> bytes:
+        LOGGER.debug('Add listener to event %s', event_name)
         await self.listen(event_name)
-        await self._page.goto(url, {'waitUntil': 'domcontentloaded', 'timeout': self._timeout})
+        LOGGER.debug('Open page with url %s', url)
+        await self._page.goto(url, {'timeout': self._timeout})
         try:
+            LOGGER.debug('Wait for callback %s', url)
             await asyncio.wait_for(self._event.wait(), self._timeout / 1000)
         except asyncio.TimeoutError:
+            LOGGER.debug('Exception by timeout %s', url)
             raise TimeoutError(f'Navigation Timeout Exceeded: {self._timeout} ms exceeded.')
         return await self._page.screenshot(type=image_type)
 
