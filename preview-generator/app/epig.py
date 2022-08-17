@@ -1,4 +1,6 @@
 import asyncio
+import time
+
 from pyppeteer import connect
 from pyppeteer.page import Page
 from pyppeteer.errors import TimeoutError
@@ -72,6 +74,8 @@ class EventPreviewImageGenerator(object):
         except asyncio.TimeoutError:
             LOGGER.debug('Exception by timeout %s', url)
             raise TimeoutError(f'Navigation Timeout Exceeded: {self._timeout} ms exceeded.')
+        # TODO remove sleep(5) after ready event is fixed https://kontur.fibery.io/Tasks/Task/Event-Preview-Image-Generator-Add-event-to-DN-when-page-is-ready-10805
+        time.sleep(5)
         return await self._page.screenshot(type=image_type)
 
     def fire(self) -> None:
