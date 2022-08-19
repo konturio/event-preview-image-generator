@@ -4,7 +4,7 @@ metadata:
   name: {{ .Values.ENV_NAME }}-chromium-headless
   namespace: {{ .Release.Namespace }}
   labels:
-    app.kubernetes.io/name: epig
+    app.kubernetes.io/name: chromium-headless
     app.kubernetes.io/instance: {{ .Values.ENV_NAME }}-chromium-headless
     app.kubernetes.io/version: {{ .Chart.Version }}
     app.kubernetes.io/managed-by: "Helm"
