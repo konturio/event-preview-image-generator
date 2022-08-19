@@ -106,7 +106,7 @@ async def preview(request: 'Request') -> 'Response':
 
     try:
         img = await screenshot_cached(current_settings)
-        return Response(content=img)
+        return Response(content=img, media_type="image/" + current_settings.IMAGE_FORMAT)
     except BrowserError:
         raise HTTPException(status_code=503)
     except PageError:
