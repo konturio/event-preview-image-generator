@@ -67,29 +67,6 @@ CACHE_TTL=60
 CACHE_PASSWORD='redis_password'
 ```
 
-Memcached config variables
-
-```dotenv
-CACHE_URL='memcached://localhost:11211'
-CACHE_TTL=60
-```
-
-#### Note
-
-Memcached does not currently work in the official release (master only) of aiocache and will be fixed in the next
-release.
-
-will be removed loop
-from https://github.com/aio-libs/aiocache/blob/54dd3ed0db9b04678dc1093a9951d239f39028bb/aiocache/backends/memcached.py#L16
-
-To enable memcached support you need to comment out `aiocache` and uncomment the following line
-in [requirements.txt](requirements.txt). Also when building a docker image, you need to define build_arg
-`MEMCACHED_WORKAROUND=1`
-
-```requirements.txt
--e git+https://github.com/aio-libs/aiocache.git@master#egg=aiocache[redis,memcached]
-```
-
 ## Usage
 
 ### Local run

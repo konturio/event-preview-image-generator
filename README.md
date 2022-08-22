@@ -3,7 +3,7 @@
 The project is designed to create screenshots of a web page on a browser event. Can be used to create
 preview for later use when posting on social media using the opengraph protocol.
 
-The project uses 2 containers: chromium-headless and preview-genetator. You can optionally use redis or
+The project uses 2 containers: chromium-headless and preview-generator. You can optionally use redis or
 memcached for image caching
 
 ## [Chromium headless](chromium-headless/README.md)
