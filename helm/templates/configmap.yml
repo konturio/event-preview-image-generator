@@ -23,7 +23,7 @@ data:
   HEIGHT: "{{ .Values.HEIGHT }}"
   QS: "app={{ .Values.APP_ID }}&feed=kontur-public"
   TIMEOUT: "{{ .Values.TIMEOUT }}"
-  DEFAULT_IMAGE: "{{ .Values.DEFAULT_IMAGE }}"
+  DEFAULT_IMAGE_URL: "{{ .Values.DEFAULT_IMAGE_URL }}"
   ALLOW_EMPTY_QS: "FALSE"
   IMAGE_FORMAT: "{{ .Values.IMAGE_FORMAT }}"
   CACHE_URL: "redis://{{ .Values.ENV_NAME }}-redis:6379"
