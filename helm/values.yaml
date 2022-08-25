@@ -1,5 +1,4 @@
 EVENT_NAME: "event_ready_for_screenshot"
-DEFAULT_IMAGE: ""
 IMAGE_FORMAT: png
 PORT: "8000"
 WIDTH: 1200
