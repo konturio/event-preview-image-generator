@@ -24,7 +24,7 @@ jobs:
         echo '${{ secrets.NEXUS_DEPLOYER_PASS }}' | docker login nexus.kontur.io:8085 -u '${{ secrets.NEXUS_DEPLOYER }}' --password-stdin
 
     - name: Extract Chromium Docker metadata
-      uses: docker/metadata-action@v4.0.1
+      uses: docker/metadata-action@v4.1.1
       id: meta-chromium
       with:
         images: nexus.kontur.io:8085/konturdev/chromium-headless
@@ -32,7 +32,7 @@ jobs:
           type=raw,value=${{ github.ref_name }}.{{sha}}.${{ github.run_attempt }}
 
     - name: Build and push Chromium image
-      uses: docker/build-push-action@v3.0.0
+      uses: docker/build-push-action@v3.2.0
       with:
         context: ./chromium-headless
         push: true
@@ -41,7 +41,7 @@ jobs:
 
 
     - name: Extract Preview Generator Docker metadata
-      uses: docker/metadata-action@v4.0.1
+      uses: docker/metadata-action@v4.1.1
       id: meta-preview
       with:
         images: nexus.kontur.io:8085/konturdev/preview-generator
@@ -49,7 +49,7 @@ jobs:
           type=raw,value=${{ github.ref_name }}.{{sha}}.${{ github.run_attempt }}
 
     - name: Build and push Preview Generator image
-      uses: docker/build-push-action@v3.0.0
+      uses: docker/build-push-action@v3.2.0
       with:
         context: ./preview-generator
         push: true
