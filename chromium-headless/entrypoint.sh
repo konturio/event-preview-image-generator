@@ -1,8 +1,4 @@
 #!/bin/sh
-# Run dbus daemon
-if ! pgrep -x "dbus-daemon" >/dev/null; then
-  dbus-daemon --config-file=/usr/share/dbus-1/system.conf
-fi
 
 COMMON_SWITCHES="--headless \
   --no-sandbox \
@@ -17,7 +13,10 @@ COMMON_SWITCHES="--headless \
   --no-default-browser-check \
   --ignore-gpu-blocklist \
   --use-gl=angle \
-  --use-angle=swiftshader \
+  --use-angle=swiftshader-webgl \
+  --disable-software-rasterizer \
+  --disable-renderer-backgrounding \
+  --disable-background-timer-throttling \
   --hide-scrollbars"
 
 if [ -n "${CHROMIUM_PORT}" ]; then

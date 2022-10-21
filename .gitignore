@@ -3,3 +3,5 @@ venv
 chromium-headless/cache
 chromium-headless/share
 preview-generator/.env
+
+.idea

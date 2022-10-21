@@ -13,8 +13,6 @@ RUN set -xe && \
         harfbuzz \
         font-noto-emoji \
         font-opensans \
-        dbus \
-        chromium-swiftshader \
         chromium && \
         mkdir -p ${WORKDIR}/cache/chromium && \
         mkdir -p ${WORKDIR}/cache/fonts && \
