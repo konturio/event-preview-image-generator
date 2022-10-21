@@ -116,6 +116,16 @@ async def preview(request: 'Request') -> 'Response':
         return await default_image(current_settings.DEFAULT_IMAGE_URL)
 
 
+@app.route("/active/preview.png/gpu-info", methods=["GET"])
+async def info_screenshot(request: 'Request') -> 'Response':
+    current_settings = settings.copy()
+    ip_addr = socket.gethostbyname(current_settings.CHROMIUM_HOST)
+    browser_url = str(URL(scheme='http', hostname=ip_addr, port=current_settings.CHROMIUM_PORT))
+    img = await EventPreviewImageGenerator.screenshot_info_page(browser_url)
+
+    return Response(content=img, media_type="image/png")
+
+
 @app.route("/health", methods=["GET"])
 async def health(request: 'Request') -> 'Response':
     return PlainTextResponse('ok')

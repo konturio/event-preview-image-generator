@@ -74,9 +74,20 @@ class EventPreviewImageGenerator(object):
         except asyncio.TimeoutError:
             LOGGER.debug('Exception by timeout %s', url)
             raise TimeoutError(f'Navigation Timeout Exceeded: {self._timeout} ms exceeded.')
-        # TODO remove sleep() after ready event is fixed https://kontur.fibery.io/Tasks/Task/Event-Preview-Image-Generator-Add-event-to-DN-when-page-is-ready-10805
-        time.sleep(1)
         return await self._page.screenshot(type=image_type)
 
     def fire(self) -> None:
         self._event.set()
+
+    @classmethod
+    async def screenshot_info_page(cls, browser_url: str) -> bytes:
+        browser = await connect({
+            'browserURL': browser_url,
+        })
+        page = await browser.newPage()
+        try:
+            await page.goto('chrome://gpu')
+            time.sleep(1)
+            return await page.screenshot()
+        finally:
+            await page.close()
