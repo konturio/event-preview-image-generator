@@ -1,0 +1,59 @@
+name: 01 Build and Publish
+
+on:
+  push:
+    branches:
+    - 'main'
+    - 'release-*'
+  workflow_dispatch:
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_CONFIG: $HOME/.docker
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Logging into Kontur Nexus
+      run: |-
+        set -e
+        echo '${{ secrets.NEXUS_DEPLOYER_PASS }}' | docker login nexus.kontur.io:8084 -u '${{ secrets.NEXUS_DEPLOYER }}' --password-stdin
+        echo '${{ secrets.NEXUS_DEPLOYER_PASS }}' | docker login nexus.kontur.io:8085 -u '${{ secrets.NEXUS_DEPLOYER }}' --password-stdin
+
+    - name: Extract Chromium Docker metadata
+      uses: docker/metadata-action@v4.0.1
+      id: meta-chromium
+      with:
+        images: nexus.kontur.io:8085/konturdev/chromium-headless
+        tags: |
+          type=raw,value=${{ github.ref_name }}.{{sha}}.${{ github.run_attempt }}
+
+    - name: Build and push Chromium image
+      uses: docker/build-push-action@v3.0.0
+      with:
+        context: .
+        push: true
+        file: {context}/chromium-headless/Dockerfile
+        tags: ${{ steps.meta-chromium.outputs.tags }}
+        labels: ${{ steps.meta-chromium.outputs.labels }}
+
+
+    - name: Extract Preview Generator Docker metadata
+      uses: docker/metadata-action@v4.0.1
+      id: meta-preview
+      with:
+        images: nexus.kontur.io:8085/konturdev/preview-generator
+        tags: |
+          type=raw,value=${{ github.ref_name }}.{{sha}}.${{ github.run_attempt }}
+
+    - name: Build and push Preview Generator image
+      uses: docker/build-push-action@v3.0.0
+      with:
+        context: .
+        push: true
+        file: {context}/preview-generator/Dockerfile
+        tags: ${{ steps.meta-preview.outputs.tags }}
+        labels: ${{ steps.meta-preview.outputs.labels }}
