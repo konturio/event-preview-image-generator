@@ -55,3 +55,7 @@ jobs:
         push: true
         tags: ${{ steps.meta-preview.outputs.tags }}
         labels: ${{ steps.meta-preview.outputs.labels }}
+
+    - name: Write image tags summary
+      run: |-
+        echo "<h3>Docker image tag</h3> ${{ github.ref_name }}.{{sha}}.${{ github.run_attempt }} <br><br>" >> $GITHUB_STEP_SUMMARY
