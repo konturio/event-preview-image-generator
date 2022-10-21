@@ -34,9 +34,8 @@ jobs:
     - name: Build and push Chromium image
       uses: docker/build-push-action@v3.0.0
       with:
-        context: .
+        context: ./chromium-headless
         push: true
-        file: {context}/chromium-headless/Dockerfile
         tags: ${{ steps.meta-chromium.outputs.tags }}
         labels: ${{ steps.meta-chromium.outputs.labels }}
 
@@ -52,8 +51,7 @@ jobs:
     - name: Build and push Preview Generator image
       uses: docker/build-push-action@v3.0.0
       with:
-        context: .
+        context: ./preview-generator
         push: true
-        file: {context}/preview-generator/Dockerfile
         tags: ${{ steps.meta-preview.outputs.tags }}
         labels: ${{ steps.meta-preview.outputs.labels }}
