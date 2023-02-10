@@ -83,6 +83,10 @@ class EventPreviewImageGenerator(object):
     async def screenshot_info_page(cls, browser_url: str) -> bytes:
         browser = await connect({
             'browserURL': browser_url,
+            'defaultViewport': {
+                'width': 1280,
+                'height': 1024
+            },
         })
         page = await browser.newPage()
         try:
