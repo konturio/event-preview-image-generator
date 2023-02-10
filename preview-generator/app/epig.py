@@ -74,7 +74,7 @@ class EventPreviewImageGenerator(object):
             await asyncio.wait_for(self._event.wait(), self._timeout / 1000)
         except asyncio.TimeoutError:
             LOGGER.debug('Exception by timeout %s', url)
-            if default_image is None:
+            if default_image is None or not str(default_image):
                 LOGGER.debug('Return not ready site screenshot')
                 return await self._page.screenshot(type=image_type)
             raise TimeoutError(f'Navigation Timeout Exceeded: {self._timeout} ms exceeded.')
