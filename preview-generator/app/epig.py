@@ -5,6 +5,7 @@ from pyppeteer import connect
 from pyppeteer.page import Page
 from pyppeteer.errors import TimeoutError
 from logger import LOGGER
+from starlette.datastructures import URL
 
 class EventPreviewImageGenerator(object):
     __slots__ = '_page', '_event', '_timeout', '_debug'
@@ -63,7 +64,7 @@ class EventPreviewImageGenerator(object):
     async def close(self) -> None:
         await self._page.close(runBeforeUnload=False)
 
-    async def screenshot(self, url: str, event_name: str = 'load', image_type: str = 'png') -> bytes:
+    async def screenshot(self, url: str, event_name: str = 'load', image_type: str = 'png', default_image: URL = None) -> bytes:
         LOGGER.debug('Add listener to event %s', event_name)
         await self.listen(event_name)
         LOGGER.debug('Open page with url %s', url)
@@ -73,6 +74,9 @@ class EventPreviewImageGenerator(object):
             await asyncio.wait_for(self._event.wait(), self._timeout / 1000)
         except asyncio.TimeoutError:
             LOGGER.debug('Exception by timeout %s', url)
+            if default_image is None:
+                LOGGER.debug('Return not ready site screenshot')
+                return await self._page.screenshot(type=image_type)
             raise TimeoutError(f'Navigation Timeout Exceeded: {self._timeout} ms exceeded.')
         return await self._page.screenshot(type=image_type)
 
