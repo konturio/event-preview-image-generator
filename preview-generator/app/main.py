@@ -55,6 +55,7 @@ async def screenshot(current_settings: 'Settings') -> bytes:
         browserUrl,
         current_settings.WIDTH,
         current_settings.HEIGHT,
+        current_settings.SITE_URL,
         timeout=current_settings.TIMEOUT,
         debug=current_settings.DEBUG
     )

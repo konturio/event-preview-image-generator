@@ -4,6 +4,7 @@ import time
 from pyppeteer import connect
 from pyppeteer.page import Page
 from pyppeteer.errors import TimeoutError
+from pyppeteer.browser import Target
 from logger import LOGGER
 from starlette.datastructures import URL
 
@@ -16,11 +17,17 @@ class EventPreviewImageGenerator(object):
         self._timeout = timeout
         self._debug = debug
 
+    # @staticmethod
+    # async def _setdebugparams(target: Target) -> None:
+    #     session = await target.createCDPSession()
+    #     await session.send('Runtime.evaluate', {'expression': 'localStorage.setItem(\'KONTUR_METRICS_DEBUG\', \'true\')'})
+
     @classmethod
     async def create(cls,
                      browser_url: str,
                      width: int = 1200,
                      height: int = 630,
+                     site_url: URL = None,
                      timeout: int = 10000,
                      debug: bool = False
                      ) -> 'EventPreviewImageGenerator':
@@ -34,9 +41,15 @@ class EventPreviewImageGenerator(object):
             },
             'logLevel': 'DEBUG' if debug else 'INFO'
         })
+        # browser.on('targetcreated', cls._setdebugparams)
 
         LOGGER.debug('Wait opened tab %s', browser_url)
         page = await browser.newPage()
+
+        await page.goto(str(site_url))
+        await page.evaluate(f"() => {{ localStorage.setItem('KONTUR_METRICS_DEBUG', true) }}")
+        await page.evaluate(f"() => {{ localStorage.setItem('KONTUR_DEBUG', true) }}")
+
         instance = cls(page, timeout=timeout, debug=debug)
         LOGGER.debug('Wait exposeFunction')
         await page.exposeFunction(
