@@ -62,7 +62,8 @@ async def screenshot(current_settings: 'Settings') -> bytes:
         return await epig.screenshot(
             str(current_settings.SITE_URL),
             event_name=current_settings.EVENT_NAME,
-            image_type=current_settings.IMAGE_FORMAT
+            image_type=current_settings.IMAGE_FORMAT,
+            default_image=current_settings.DEFAULT_IMAGE_URL
         )
     finally:
         await epig.close()
