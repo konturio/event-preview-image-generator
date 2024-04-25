@@ -150,4 +150,4 @@ def create_app():
 if __name__ == '__main__':
     import uvicorn
 
-    uvicorn.run(create_app, host="127.0.0.1", port=8000, factory=True, debug=settings.DEBUG, log_config=None)
+    uvicorn.run(create_app, host="127.0.0.1", port=8000, factory=True, debug=settings.DEBUG)
