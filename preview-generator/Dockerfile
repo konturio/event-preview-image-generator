@@ -9,4 +9,4 @@ RUN pip install --no-cache-dir --upgrade -r /app/requirements.txt
 
 COPY ./app /app
 
-ENTRYPOINT uvicorn main:app --host 0.0.0.0 --port ${PORT}
+ENTRYPOINT uvicorn main:create_app --factory --host 0.0.0.0 --port ${PORT}

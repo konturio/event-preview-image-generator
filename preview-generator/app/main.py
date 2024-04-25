@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING
 import socket
 import hashlib
 
+import sentry_sdk
 import ujson as json
 from aiocache import cached, caches
 from starlette.applications import Starlette
@@ -24,6 +25,13 @@ if TYPE_CHECKING:
 settings = Settings()
 secret = Secret()
 
+
+if settings.SENTRY_ENABLED:
+    sentry_sdk.init(
+        dsn=secret.SENTRY_DSN,
+        enable_tracing=True,
+        environment=settings.SENTRY_ENV,
+    )
 
 app = Starlette()
 
@@ -135,7 +143,11 @@ async def health(request: 'Request') -> 'Response':
     return PlainTextResponse('ok')
 
 
+def create_app():
+    # sentry sdk wrapps the app into factory, so uvicorn should receive a callable
+    return app
+
 if __name__ == '__main__':
     import uvicorn
 
-    uvicorn.run(app, host="127.0.0.1", port=8000, debug=settings.DEBUG, log_config=None)
+    uvicorn.run(create_app, host="127.0.0.1", port=8000, factory=True, debug=settings.DEBUG, log_config=None)

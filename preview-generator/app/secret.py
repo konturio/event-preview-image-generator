@@ -1,18 +1,20 @@
 from typing import Dict
 from dataclasses import dataclass, fields, replace, asdict
 from starlette.config import Config
+from starlette.datastructures import Secret as StarletteSecret
 
 
 @dataclass
 class Secret:
     CACHE_PASSWORD: str = None
+    SENTRY_DSN: str = None
 
     def __post_init__(self):
         config = Config('../.env')
         for field in fields(self):
             value = getattr(self, field.name)
             if value == field.default:
-                setattr(self, field.name, config(field.name, cast=field.type, default=field.default))
+                setattr(self, field.name, config(field.name, cast=StarletteSecret, default=field.default))
             elif not isinstance(value, field.type):
                 setattr(self, field.name, field.type(value))
 
