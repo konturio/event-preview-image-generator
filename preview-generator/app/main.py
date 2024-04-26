@@ -36,7 +36,7 @@ if settings.SENTRY_ENABLED:
 app = Starlette()
 
 if settings.CACHE_URL != '':
-    caches.set_config(cache_config(settings.CACHE_URL, secret.CACHE_PASSWORD))
+    caches.set_config(cache_config(settings.CACHE_URL, str(secret.CACHE_PASSWORD)))
 
 
 def cache_key_builder(f, current_settings: 'Settings') -> str:
