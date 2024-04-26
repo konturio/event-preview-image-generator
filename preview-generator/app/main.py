@@ -1,6 +1,8 @@
 from typing import TYPE_CHECKING
 import socket
 import hashlib
+
+import sentry_sdk
 import ujson as json
 from aiocache import cached, caches
 from starlette.applications import Starlette
@@ -9,11 +11,13 @@ from starlette.responses import Response, RedirectResponse, PlainTextResponse
 from starlette.exceptions import HTTPException
 from starlette.datastructures import QueryParams, URL
 from pyppeteer.errors import BrowserError, PageError
+
 from settings import Settings
 from secret import Secret
 from epig import EventPreviewImageGenerator, TimeoutError
 from cache_config import cache_config
 from logger import LOGGER
+
 
 if TYPE_CHECKING:
     from starlette.requests import Request
@@ -21,6 +25,13 @@ if TYPE_CHECKING:
 settings = Settings()
 secret = Secret()
 
+
+if settings.SENTRY_ENABLED:
+    sentry_sdk.init(
+        dsn=secret.SENTRY_DSN,
+        enable_tracing=True,
+        environment=settings.SENTRY_ENV,
+    )
 
 app = Starlette()
 
@@ -132,7 +143,11 @@ async def health(request: 'Request') -> 'Response':
     return PlainTextResponse('ok')
 
 
+def create_app():
+    # sentry sdk wrapps the app into factory, so uvicorn should receive a callable
+    return app
+
 if __name__ == '__main__':
     import uvicorn
 
-    uvicorn.run(app, host="127.0.0.1", port=8000, debug=settings.DEBUG)
+    uvicorn.run(create_app, host="127.0.0.1", port=8000, factory=True, debug=settings.DEBUG)

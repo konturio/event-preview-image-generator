@@ -1,5 +1,7 @@
 import logging
+
 from settings import Settings
+
 
 settings = Settings()
 LOGGER = logging.getLogger('uvicorn')

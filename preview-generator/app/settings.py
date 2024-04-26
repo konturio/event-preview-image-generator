@@ -18,6 +18,8 @@ class Settings:
     ALLOW_EMPTY_QS: bool = True
     DEFAULT_IMAGE_URL: URL = None
     IMAGE_FORMAT: str = 'png'
+    SENTRY_ENV: str = 'test'
+    SENTRY_ENABLED: bool = True
 
     CACHE_URL: URL = ''
     CACHE_TTL: int = 600  # in seconds

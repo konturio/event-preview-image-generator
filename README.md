@@ -12,6 +12,8 @@ memcached for image caching
 
 ## Kubernetes
 
+Deployment is managed by [disaster-ninja-cd](https://github.com/konturio/disaster-ninja-cd/tree/main/helm/epig)
+
 Create configmap
 
 ```shell
