@@ -36,6 +36,10 @@ Edit `.env` file with following variables:
 * CACHE_TTL - seconds before cache expires (default `600`)
 * CACHE_PASSWORD - password for redis
 
+### Page Configuration
+
+The application automatically sets `window.presentationMode = true` for all pages when they are loaded.
+
 ### Custom headers
 
 You can pass custom headers to the preview generator for dynamic customization
