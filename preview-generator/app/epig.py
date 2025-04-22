@@ -48,9 +48,10 @@ class EventPreviewImageGenerator(object):
         return instance
 
     @staticmethod
-    def _listener_func(event_name: str, debug: bool = False) -> str:
+    def _setup_page_script(event_name: str, debug: bool = False) -> str:
         return f'''
             () => {{
+                window.presentationMode = true;
                 window.addEventListener("{event_name}", ({{ type, detail }}) => {{
                     onCustomEvent();
                     {f'console.log("event fired {event_name}");' if debug else ''}
@@ -59,7 +60,7 @@ class EventPreviewImageGenerator(object):
         '''
 
     async def listen(self, event: str) -> None:
-        await self._page.evaluateOnNewDocument(self._listener_func(event, self._debug))
+        await self._page.evaluateOnNewDocument(self._setup_page_script(event, self._debug))
 
     async def close(self) -> None:
         await self._page.close(runBeforeUnload=False)
