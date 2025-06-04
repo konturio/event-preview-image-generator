@@ -23,6 +23,7 @@ class Settings:
 
     CACHE_URL: URL = ''
     CACHE_TTL: int = 600  # in seconds
+    CACHE_TIMEOUT: int = 1  # in seconds
 
     DEBUG: bool = False
 

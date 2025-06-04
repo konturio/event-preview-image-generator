@@ -37,6 +37,7 @@ data:
   TIMEOUT: "10000"
   CACHE_URL: "redis://redis:6379"
   CACHE_TTL: "120"
+  CACHE_TIMEOUT: "1"
   DEBUG: "FALSE"
   PORT: "8000"
 EOF
@@ -82,6 +83,7 @@ data:
   TIMEOUT: "60000"
   CACHE_URL: "redis://redis:6379"
   CACHE_TTL: "120"
+  CACHE_TIMEOUT: "1"
   DEBUG: "FALSE"
   PORT: "8000"
 EOF

@@ -35,6 +35,7 @@ Edit `.env` file with following variables:
 * CACHE_URL - link to caching server (default `empty`, disable cache)
 * CACHE_TTL - seconds before cache expires (default `600`)
 * CACHE_PASSWORD - password for redis
+* CACHE_TIMEOUT - seconds before cache operation times out (default `1`)
 
 ### Page Configuration
 
@@ -61,6 +62,7 @@ In-memory cache
 ```dotenv
 CACHE_URL='memory://'
 CACHE_TTL=60
+CACHE_TIMEOUT=1
 ```
 
 Redis config variables
@@ -69,6 +71,7 @@ Redis config variables
 CACHE_URL='redis://localhost:6379'
 CACHE_TTL=60
 CACHE_PASSWORD='redis_password'
+CACHE_TIMEOUT=1
 ```
 
 ## Usage
