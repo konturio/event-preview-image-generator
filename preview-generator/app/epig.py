@@ -50,13 +50,13 @@ class EventPreviewImageGenerator(object):
     @staticmethod
     def _setup_page_script(event_name: str, debug: bool = False) -> str:
         return f'''
-            () => {{
+            (() => {{
                 window.presentationMode = true;
-                window.addEventListener("{event_name}", ({{ type, detail }}) => {{
+                window.addEventListener("{event_name}", () => {{
                     onCustomEvent();
                     {f'console.log("event fired {event_name}");' if debug else ''}
                 }});
-            }}
+            }})()
         '''
 
     async def listen(self, event: str) -> None:

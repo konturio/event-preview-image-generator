@@ -42,6 +42,9 @@ The application automatically sets `window.presentationMode = true` for all page
 
 Screenshots are clipped to the browser viewport to avoid extra white stripes that can appear when a page layout extends beyond the viewport width.
 
+The preview generator injects its event listener before the page loads so that
+custom events like `event_ready_for_screenshot` are reliably captured.
+
 ### Custom headers
 
 You can pass custom headers to the preview generator for dynamic customization
