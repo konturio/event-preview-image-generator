@@ -3,6 +3,7 @@ import socket
 import hashlib
 
 import sentry_sdk
+from pathlib import Path
 import ujson as json
 from aiocache import cached, caches
 from starlette.applications import Starlette
@@ -24,6 +25,7 @@ if TYPE_CHECKING:
 
 settings = Settings()
 secret = Secret()
+LOG_CONFIG = str(Path(__file__).resolve().parent / "log-config.yml")
 
 
 if settings.SENTRY_ENABLED:
@@ -150,4 +152,11 @@ def create_app():
 if __name__ == '__main__':
     import uvicorn
 
-    uvicorn.run(create_app, host="127.0.0.1", port=8000, factory=True, debug=settings.DEBUG)
+    uvicorn.run(
+        "main:create_app",
+        host="127.0.0.1",
+        port=8000,
+        factory=True,
+        log_config=LOG_CONFIG,
+        log_level="debug" if settings.DEBUG else "info",
+    )
