@@ -1,0 +1,79 @@
+name: 00 Smoke Tests
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Chromium Headless image
+        run: docker build -t chromium-headless:local ./chromium-headless
+
+      - name: Build Preview Generator image
+        run: docker build -t preview-generator:local ./preview-generator
+
+      - name: Start Chromium container
+        run: |
+          docker network create epig-test
+          docker run -d --name chromium --network epig-test -p 9222:9222 chromium-headless:local
+
+      - name: Wait for Chromium
+        run: |
+          for i in {1..30}; do
+            if curl -sf http://localhost:9222/json/version >/dev/null; then
+              echo "Chromium is up"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Chromium did not start" >&2
+          docker logs chromium || true
+          exit 1
+
+      - name: Start Preview Generator container
+        run: |
+          docker run -d --name preview \
+            --network epig-test -p 8000:8000 \
+            --env-file preview-generator/.env.example \
+            -e CHROMIUM_HOST=chromium \
+            -e CHROMIUM_PORT=9222 \
+            -e SENTRY_ENABLED=false \
+            preview-generator:local
+
+      - name: Wait for Preview Generator
+        run: |
+          for i in {1..30}; do
+            if curl -sf http://localhost:8000/health >/dev/null; then
+              echo "Preview Generator is up"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Preview Generator did not start" >&2
+          docker logs preview || true
+          exit 1
+
+      - name: Smoke test GPU info route
+        run: |
+          curl -sf http://localhost:8000/active/preview.png/gpu-info -o gpu.png
+          test -s gpu.png
+
+      - name: Show logs on failure
+        if: failure()
+        run: |
+          echo '=== Chromium logs ==='
+          docker logs chromium || true
+          echo '=== Preview logs ==='
+          docker logs preview || true
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker rm -f preview chromium || true
+          docker network rm epig-test || true
