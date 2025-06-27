@@ -28,9 +28,9 @@ COMMON_SWITCHES="--headless \
   --run-all-compositor-stages-before-draw \
   --window-size=${CHROMIUM_WIDTH:-1200},${CHROMIUM_HEIGHT:-630} \
   --remote-debugging-port=2222 \
-  --user-data-dir=${WORKDIR}/cache/chromium \
+  --user-data-dir=/app/cache/chromium \
   --disk-cache-size=${CHROMIUM_CACHE_SIZE}"
 
 socat TCP-LISTEN:${CHROMIUM_PORT:-9222},reuseaddr,fork TCP:127.0.0.1:2222 &
 
-"${CHROME_PATH}" ${COMMON_SWITCHES} "$@"
+/usr/bin/chromium-browser ${COMMON_SWITCHES} "$@"
