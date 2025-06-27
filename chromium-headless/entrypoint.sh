@@ -20,6 +20,10 @@ COMMON_SWITCHES="--headless \
   --disable-software-rasterizer \
   --disable-renderer-backgrounding \
   --disable-background-timer-throttling \
+  --disable-crashpad \
+  --disable-crash-reporter \
+  --disable-breakpad \
+  --crash-dumps-dir=/tmp \
   --hide-scrollbars \
   --run-all-compositor-stages-before-draw \
   --window-size=${CHROMIUM_WIDTH:-1200},${CHROMIUM_HEIGHT:-630} \
