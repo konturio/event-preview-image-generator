@@ -5,10 +5,22 @@ on:
     branches:
       - '**'
   workflow_dispatch:
+  workflow_call:
+    outputs:
+      image_tag:
+        description: Docker image tag
+        value: ${{ jobs.build-and-publish.outputs.image_tag }}
+    secrets:
+      NEXUS_DEPLOYER:
+        required: true
+      NEXUS_DEPLOYER_PASS:
+        required: true
 
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.set_output.outputs.image_tag }}
     env:
       DOCKER_CONFIG: $HOME/.docker
 
@@ -22,13 +34,20 @@ jobs:
         echo '${{ secrets.NEXUS_DEPLOYER_PASS }}' | docker login nexus.kontur.io:8084 -u '${{ secrets.NEXUS_DEPLOYER }}' --password-stdin
         echo '${{ secrets.NEXUS_DEPLOYER_PASS }}' | docker login nexus.kontur.io:8085 -u '${{ secrets.NEXUS_DEPLOYER }}' --password-stdin
 
+    - name: Sanitize ref name for Docker tags
+      id: sanitize
+      run: |
+        REF_NAME='${{ github.ref_name }}'
+        SANITIZED=$(echo "$REF_NAME" | tr '/\,' '--')
+        echo "ref_name=$SANITIZED" >> "$GITHUB_OUTPUT"
+
     - name: Extract Chromium Docker metadata
       uses: docker/metadata-action@v4.1.1
       id: meta-chromium
       with:
         images: nexus.kontur.io:8085/konturdev/chromium-headless
         tags: |
-          type=raw,value=${{ github.ref_name }}.{{sha}}.${{ github.run_attempt }}
+          type=raw,value=${{ steps.sanitize.outputs.ref_name }}.{{sha}}.${{ github.run_attempt }}
 
     - name: Build and push Chromium image
       uses: docker/build-push-action@v3.2.0
@@ -45,7 +64,7 @@ jobs:
       with:
         images: nexus.kontur.io:8085/konturdev/preview-generator
         tags: |
-          type=raw,value=${{ github.ref_name }}.{{sha}}.${{ github.run_attempt }}
+          type=raw,value=${{ steps.sanitize.outputs.ref_name }}.{{sha}}.${{ github.run_attempt }}
 
     - name: Build and push Preview Generator image
       uses: docker/build-push-action@v3.2.0
@@ -58,3 +77,7 @@ jobs:
     - name: Write image tags summary
       run: |-
         echo "<h3>Docker image tag</h3> ${{ steps.meta-preview.outputs.version }} <br><br>" >> $GITHUB_STEP_SUMMARY
+
+    - name: Set output for image tag
+      id: set_output
+      run: echo "image_tag=${{ steps.meta-preview.outputs.tags }}" >> $GITHUB_OUTPUT
