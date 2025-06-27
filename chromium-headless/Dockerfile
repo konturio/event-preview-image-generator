@@ -14,7 +14,9 @@ RUN set -xe && \
         font-noto-emoji \
         font-opensans \
         chromium-swiftshader \
-        chromium && \
+        chromium \
+        socat \
+        && \
         mkdir -p ${WORKDIR}/cache/chromium && \
         mkdir -p ${WORKDIR}/cache/fonts && \
         mkdir -p ${WORKDIR}/share

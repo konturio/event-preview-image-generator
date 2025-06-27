@@ -1,6 +1,6 @@
 #!/bin/sh
 
-COMMON_SWITCHES="--headless=new \
+COMMON_SWITCHES="--headless \
   --no-sandbox \
   --disable-gpu-sandbox \
   --disable-dev-shm-usage \
@@ -9,25 +9,24 @@ COMMON_SWITCHES="--headless=new \
   --disable-sync \
   --disable-speech-api \
   --disable-extensions \
-  --disable-features=TranslateUI,Floss,Bluetooth \
+  --disable-features=TranslateUI,Floss,Bluetooth,MediaRouter,Sync,GcmService \
   --disable-hang-monitor \
   --no-default-browser-check \
   --ignore-gpu-blocklist \
   --use-gl=angle \
   --use-angle=swiftshader-webgl \
+  --enable-unsafe-swiftshader \
+  --no-default-browser-check \
   --disable-software-rasterizer \
   --disable-renderer-backgrounding \
   --disable-background-timer-throttling \
   --hide-scrollbars \
-  --window-size=${CHROMIUM_WIDTH:-1200},${CHROMIUM_HEIGHT:-630}"
+  --run-all-compositor-stages-before-draw \
+  --window-size=${CHROMIUM_WIDTH:-1200},${CHROMIUM_HEIGHT:-630} \
+  --remote-debugging-port=2222 \
+  --user-data-dir=${WORKDIR}/cache/chromium \
+  --disk-cache-size=${CHROMIUM_CACHE_SIZE}"
 
-if [ -n "${CHROMIUM_PORT}" ]; then
-  REMOTE_DEBUGGING="--remote-debugging-address=${CHROMIUM_ADDRESS:-0.0.0.0} --remote-debugging-port=${CHROMIUM_PORT}"
-fi
+socat TCP-LISTEN:${CHROMIUM_PORT:-9222},reuseaddr,fork TCP:127.0.0.1:2222 &
 
-if [ -n "${CHROMIUM_CACHE_SIZE}" ]; then
-  CACHE_CONFIG="--user-data-dir=${WORKDIR}/cache/chromium --disk-cache-size=${CHROMIUM_CACHE_SIZE}"
-fi
-
-# shellcheck disable=SC2086
-"${CHROME_PATH}" ${COMMON_SWITCHES} ${REMOTE_DEBUGGING} ${CACHE_CONFIG} "$@"
+"${CHROME_PATH}" ${COMMON_SWITCHES} "$@"
