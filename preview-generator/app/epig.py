@@ -50,13 +50,13 @@ class EventPreviewImageGenerator(object):
     @staticmethod
     def _setup_page_script(event_name: str, debug: bool = False) -> str:
         return f'''
-            () => {{
+            (() => {{
                 window.presentationMode = true;
-                window.addEventListener("{event_name}", ({{ type, detail }}) => {{
+                window.addEventListener("{event_name}", () => {{
                     onCustomEvent();
                     {f'console.log("event fired {event_name}");' if debug else ''}
                 }});
-            }}
+            }})()
         '''
 
     async def listen(self, event: str) -> None:
@@ -77,9 +77,9 @@ class EventPreviewImageGenerator(object):
             LOGGER.debug('Exception by timeout %s', url)
             if default_image is None or not str(default_image):
                 LOGGER.debug('Return not ready site screenshot')
-                return await self._page.screenshot(type=image_type)
+                return await self._page.screenshot(type=image_type, captureBeyondViewport=False)
             raise TimeoutError(f'Navigation Timeout Exceeded: {self._timeout} ms exceeded.')
-        return await self._page.screenshot(type=image_type)
+        return await self._page.screenshot(type=image_type, captureBeyondViewport=False)
 
     def fire(self) -> None:
         self._event.set()
@@ -97,6 +97,6 @@ class EventPreviewImageGenerator(object):
         try:
             await page.goto('chrome://gpu')
             time.sleep(1)
-            return await page.screenshot()
+            return await page.screenshot(captureBeyondViewport=False)
         finally:
             await page.close()
