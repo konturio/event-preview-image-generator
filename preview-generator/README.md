@@ -71,6 +71,10 @@ CACHE_TTL=60
 CACHE_PASSWORD='redis_password'
 ```
 
+The service adds `Cache-Control` headers based on `CACHE_TTL` when caching is enabled.
+To invalidate a cached preview send a `DELETE` request to the same URL with the
+desired query parameters.
+
 ## Usage
 
 ### Local run

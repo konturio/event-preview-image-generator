@@ -4,7 +4,8 @@ import hashlib
 
 import sentry_sdk
 import ujson as json
-from aiocache import cached, caches
+from aiocache import caches
+import asyncio
 from starlette.applications import Starlette
 from starlette.config import Config
 from starlette.responses import Response, RedirectResponse, PlainTextResponse
@@ -37,6 +38,8 @@ app = Starlette()
 
 if settings.CACHE_URL != '':
     caches.set_config(cache_config(settings.CACHE_URL, str(secret.CACHE_PASSWORD)))
+
+LOCKS = {}
 
 
 def cache_key_builder(f, current_settings: 'Settings') -> str:
@@ -80,6 +83,27 @@ async def screenshot(current_settings: 'Settings') -> bytes:
         await epig.close()
 
 
+async def screenshot_cached_manual(current_settings: 'Settings') -> bytes:
+    if current_settings.CACHE_URL == '':
+        return await screenshot(current_settings)
+
+    cache = caches.get('default')
+    key = cache_key_builder(screenshot, current_settings)
+    img = await cache.get(key)
+    if img is not None:
+        return img
+
+    lock = LOCKS.setdefault(key, asyncio.Lock())
+    async with lock:
+        img = await cache.get(key)
+        if img is not None:
+            return img
+        img = await screenshot(current_settings)
+        await cache.set(key, img, ttl=current_settings.CACHE_TTL)
+    LOCKS.pop(key, None)
+    return img
+
+
 @app.route("/active/preview.png", methods=["GET"])
 async def preview(request: 'Request') -> 'Response':
     current_settings = settings.copy()
@@ -108,17 +132,21 @@ async def preview(request: 'Request') -> 'Response':
         **dict(current_settings.QS)
     )
 
-    # Add cache decorator if cache enabled
-    screenshot_cached = cached(
-        namespace="epig",
-        ttl=current_settings.CACHE_TTL,
-        alias='default',
-        key_builder=cache_key_builder
-    )(screenshot) if current_settings.CACHE_URL != '' else screenshot
+    # Get image using custom cache logic
+    screenshot_cached = screenshot_cached_manual
 
     try:
         img = await screenshot_cached(current_settings)
-        return Response(content=img, media_type="image/" + current_settings.IMAGE_FORMAT)
+        headers = {}
+        if current_settings.CACHE_URL != '' and current_settings.CACHE_TTL:
+            headers['Cache-Control'] = f"public, max-age={current_settings.CACHE_TTL}"
+        else:
+            headers['Cache-Control'] = 'no-cache'
+        return Response(
+            content=img,
+            media_type="image/" + current_settings.IMAGE_FORMAT,
+            headers=headers
+        )
     except BrowserError:
         raise HTTPException(status_code=503)
     except PageError:
@@ -126,6 +154,33 @@ async def preview(request: 'Request') -> 'Response':
     except TimeoutError:
         LOGGER.debug('Timeout exceeded. Returning DEFAULT_IMAGE_URL')
         return await default_image(current_settings.DEFAULT_IMAGE_URL)
+
+
+@app.route("/active/preview.png", methods=["DELETE"])
+async def invalidate(request: 'Request') -> 'Response':
+    current_settings = settings.copy()
+
+    if current_settings.USE_HEADERS:
+        headers = Config(environ=request.headers)
+        current_settings = Settings(
+            SITE_URL=headers('X-EPIG-url', cast=URL, default=str(Settings.SITE_URL)),
+            EVENT_NAME=headers('X-EPIG-event', cast=str, default=Settings.EVENT_NAME),
+            WIDTH=headers('X-EPIG-width', cast=int, default=Settings.WIDTH),
+            HEIGHT=headers('X-EPIG-height', cast=int, default=Settings.HEIGHT),
+            QS=headers('X-EPIG-qs', cast=QueryParams, default=str(Settings.QS))
+        )
+
+    current_settings.SITE_URL = current_settings.SITE_URL.include_query_params(
+        **dict(request.query_params)
+    ).include_query_params(
+        **dict(current_settings.QS)
+    )
+
+    if current_settings.CACHE_URL != '':
+        cache = caches.get('default')
+        key = cache_key_builder(screenshot, current_settings)
+        await cache.delete(key)
+    return PlainTextResponse('cache invalidated')
 
 
 @app.route("/active/preview.png/gpu-info", methods=["GET"])
