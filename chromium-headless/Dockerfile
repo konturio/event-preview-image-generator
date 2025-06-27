@@ -1,9 +1,6 @@
 ARG ALPINE_VERSION=3.22
 FROM alpine:${ALPINE_VERSION}
 
-ENV WORKDIR=/app \
-    CHROME_PATH=/usr/bin/chromium-browser
-
 RUN set -xe && \
     apk upgrade --no-cache --available && \
     apk add --no-cache \
@@ -16,18 +13,18 @@ RUN set -xe && \
         chromium-swiftshader \
         chromium \
         socat \
-        && \
-        mkdir -p ${WORKDIR}/cache/chromium && \
-        mkdir -p ${WORKDIR}/cache/fonts && \
-        mkdir -p ${WORKDIR}/share
+    && \
+    mkdir -p /app/cache/chromium && \
+    mkdir -p /app/cache/fonts && \
+    mkdir -p /app/share
 
 COPY fonts.conf /etc/fonts/local.conf
-COPY entrypoint.sh ${WORKDIR}
+COPY entrypoint.sh /app/
 
-RUN chmod +x ${WORKDIR}/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
 
-WORKDIR ${WORKDIR}/share
+WORKDIR /app/share
 
 EXPOSE ${CHROMIUM_PORT}
 
-ENTRYPOINT ["../entrypoint.sh"]
+ENTRYPOINT ["/app/entrypoint.sh"]

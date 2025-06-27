@@ -25,6 +25,13 @@ path `/app/cache` and you need to define a variable
 
 * CHROMIUM_CACHE_SIZE - cache size (in bytes)
 
+### Volumes
+
+Bind mount the following directories if you need to persist files outside of the container:
+
+* `/app/cache` - Chromium user data and cache
+* `/app/share` - output directory for generated screenshots or pdfs
+
 To adjust the window size, set the following optional variables:
 
 * `CHROMIUM_WIDTH` - window width in pixels (default `1200`)
