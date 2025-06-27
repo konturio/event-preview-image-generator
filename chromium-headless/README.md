@@ -25,10 +25,10 @@ path `/app/cache` and you need to define a variable
 
 * CHROMIUM_CACHE_SIZE - cache size (in bytes)
 
-To adjust the window size:
+To adjust the window size, set the following optional variables:
 
-* CHROMIUM_WIDTH - window width (in pixels)
-* CHROMIUM_HEIGHT - window height (in pixels)
+* `CHROMIUM_WIDTH` - window width in pixels (default `1200`)
+* `CHROMIUM_HEIGHT` - window height in pixels (default `630`)
 
 ## Usage
 
