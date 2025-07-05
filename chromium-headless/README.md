@@ -1,6 +1,7 @@
 # Chromium Headless
 
-Docker image for running Chromium in headless mode with WebGL support
+Docker image for running Chromium in headless mode with WebGL or GPU support.
+The container is based on Debian Bookworm so it can use the NVIDIA driver libraries injected by `nvidia-container-runtime`.
 
 ## Font settings
 
@@ -10,8 +11,9 @@ in [FontConfig](https://www.freedesktop.org/software/fontconfig/fontconfig-user.
 ## Build image
 
 ```shell
-docker build -t chromium-headless:latest . 
+docker build -t chromium-headless:latest .
 ```
+The Dockerfile installs Chromium and GPU libraries from the Debian repositories.
 
 ## Setup
 
@@ -24,6 +26,11 @@ To use Chromium's persistent cache, you need to create a volume and forward it i
 path `/app/cache` and you need to define a variable
 
 * CHROMIUM_CACHE_SIZE - cache size (in bytes)
+* CHROMIUM_GPU_MODE - GPU backend selection. Allowed values:
+  * `software` - default; uses SwiftShader for CPU rendering.
+  * `gl` - hardware acceleration via desktop GLX.
+  * `egl` - hardware acceleration via ANGLE and EGL.
+  * `vulkan` - hardware acceleration via ANGLE Vulkan.
 
 ### Volumes
 

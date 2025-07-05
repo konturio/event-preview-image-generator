@@ -1,22 +1,13 @@
-ARG ALPINE_VERSION=3.22
-FROM alpine:${ALPINE_VERSION}
+FROM debian:bookworm
 
-RUN set -xe && \
-    apk upgrade --no-cache --available && \
-    apk add --no-cache \
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         ca-certificates \
-        freetype \
-        ttf-freefont \
-        harfbuzz \
-        font-noto-emoji \
-        font-opensans \
-        chromium-swiftshader \
-        chromium \
-        socat \
-    && \
-    mkdir -p /app/cache/chromium && \
-    mkdir -p /app/cache/fonts && \
-    mkdir -p /app/share
+        fonts-freefont-ttf fonts-noto-color-emoji fonts-open-sans \
+        libglvnd0 libgl1 libegl1 libvulkan1 libglx0 \
+        chromium socat vulkan-tools \
+    && rm -rf /var/lib/apt/lists/* && \
+    mkdir -p /app/cache/chromium /app/cache/fonts /app/share
 
 COPY fonts.conf /etc/fonts/local.conf
 COPY entrypoint.sh /app/
