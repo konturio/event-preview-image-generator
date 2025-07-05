@@ -1,13 +1,17 @@
 FROM debian:bookworm
 
+ENV NVIDIA_DRIVER_CAPABILITIES=all
+ENV NVIDIA_VISIBLE_DEVICES=all        # "all" = use whatever was requested
+
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         ca-certificates \
         python3 \
         python3-sentry-sdk \
         fonts-freefont-ttf fonts-noto-color-emoji fonts-open-sans \
-        libglvnd0 libgl1 libegl1 libvulkan1 libglx0 \
-        chromium socat vulkan-tools \
+        libvulkan1 vulkan-tools \
+        libglvnd0 libegl1 libgl1 libglx0 mesa-utils \
+        chromium socat \
     && rm -rf /var/lib/apt/lists/* && \
     mkdir -p /app/cache/chromium /app/cache/fonts /app/share
 
