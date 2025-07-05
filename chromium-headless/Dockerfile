@@ -1,7 +1,7 @@
 FROM debian:bookworm
 
 ENV NVIDIA_DRIVER_CAPABILITIES=all
-ENV NVIDIA_VISIBLE_DEVICES=all        # "all" = use whatever was requested
+ENV NVIDIA_VISIBLE_DEVICES=all
 
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
