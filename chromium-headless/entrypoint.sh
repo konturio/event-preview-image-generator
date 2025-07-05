@@ -66,5 +66,6 @@ COMMON_SWITCHES="--headless \
 
 socat TCP-LISTEN:${CHROMIUM_PORT:-9222},reuseaddr,fork TCP:127.0.0.1:2222 &
 
+# Run Chromium and forward its logs to Sentry when SENTRY_DSN is set.
 XDG_CONFIG_HOME=/tmp/.chromium XDG_CACHE_HOME=/tmp/.chromium \
-  /usr/bin/chromium ${COMMON_SWITCHES} ${GPU_SWITCHES} "$@"
+  python3 /app/forward_logs.py /usr/bin/chromium ${COMMON_SWITCHES} ${GPU_SWITCHES} "$@"

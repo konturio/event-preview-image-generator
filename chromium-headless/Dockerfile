@@ -3,6 +3,8 @@ FROM debian:bookworm
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         ca-certificates \
+        python3 \
+        python3-sentry-sdk \
         fonts-freefont-ttf fonts-noto-color-emoji fonts-open-sans \
         libglvnd0 libgl1 libegl1 libvulkan1 libglx0 \
         chromium socat vulkan-tools \
@@ -11,8 +13,9 @@ RUN apt-get update && \
 
 COPY fonts.conf /etc/fonts/local.conf
 COPY entrypoint.sh /app/
+COPY forward_logs.py /app/
 
-RUN chmod +x /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh /app/forward_logs.py
 
 WORKDIR /app/share
 

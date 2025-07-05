@@ -44,6 +44,11 @@ To adjust the window size, set the following optional variables:
 * `CHROMIUM_WIDTH` - window width in pixels (default `1200`)
 * `CHROMIUM_HEIGHT` - window height in pixels (default `630`)
 
+### Sentry logging
+
+Set `SENTRY_DSN` to forward Chromium logs to Sentry.
+Use `SENTRY_ENV` to specify the environment name.
+
 ## Usage
 
 ### Generate pdf
