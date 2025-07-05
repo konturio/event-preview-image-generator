@@ -1,5 +1,5 @@
 ARG ALPINE_VERSION=3.22
-FROM alpine:${ALPINE_VERSION}
+FROM nvcr.io/nvidia/opengl:1.0-glvnd-runtime-alpine${ALPINE_VERSION}
 
 RUN set -xe && \
     apk upgrade --no-cache --available && \
@@ -13,10 +13,10 @@ RUN set -xe && \
         chromium-swiftshader \
         chromium \
         socat \
-    && \
-    mkdir -p /app/cache/chromium && \
-    mkdir -p /app/cache/fonts && \
-    mkdir -p /app/share
+        vulkan-tools \
+    && mkdir -p /app/cache/chromium \
+        /app/cache/fonts \
+        /app/share
 
 COPY fonts.conf /etc/fonts/local.conf
 COPY entrypoint.sh /app/
