@@ -3,11 +3,11 @@ FROM debian:bookworm
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         ca-certificates \
-        python3 python3-pip \
+        python3 \
+        python3-sentry-sdk \
         fonts-freefont-ttf fonts-noto-color-emoji fonts-open-sans \
         libglvnd0 libgl1 libegl1 libvulkan1 libglx0 \
         chromium socat vulkan-tools \
-    && pip3 install --no-cache-dir 'sentry-sdk>=2.32.0,<3.0.0' \
     && rm -rf /var/lib/apt/lists/* && \
     mkdir -p /app/cache/chromium /app/cache/fonts /app/share
 
