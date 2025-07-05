@@ -19,8 +19,9 @@ case "$GPU_MODE" in
     ;;
   egl)
     DISABLE_FEATURES="${DISABLE_FEATURES},Vulkan"
-    GPU_SWITCHES="--use-angle=gl-egl \
-      --use-gl=egl \
+    GPU_SWITCHES="--use-gl=angle \
+      --use-angle=gl-egl \
+      --ozone-platform=surfaceless \
       --use-cmd-decoder=passthrough"
     ;;
   gl)

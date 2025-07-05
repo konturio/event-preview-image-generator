@@ -29,7 +29,8 @@ path `/app/cache` and you need to define a variable
 * CHROMIUM_GPU_MODE - GPU backend selection. Allowed values:
   * `software` - default; uses SwiftShader for CPU rendering.
   * `gl` - hardware acceleration via desktop GLX.
-  * `egl` - hardware acceleration via ANGLE and EGL.
+  * `egl` - hardware acceleration via ANGLE and EGL using a surfaceless Ozone platform.
+    Chrome is started with `--use-gl=angle --use-angle=gl-egl --ozone-platform=surfaceless --use-cmd-decoder=passthrough` in this mode.
   * `vulkan` - hardware acceleration via ANGLE Vulkan.
 
 ### Volumes
