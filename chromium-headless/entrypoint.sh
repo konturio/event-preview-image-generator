@@ -62,4 +62,4 @@ COMMON_SWITCHES="--headless \
 socat TCP-LISTEN:${CHROMIUM_PORT:-9222},reuseaddr,fork TCP:127.0.0.1:2222 &
 
 XDG_CONFIG_HOME=/tmp/.chromium XDG_CACHE_HOME=/tmp/.chromium \
-  /usr/bin/chromium-browser ${COMMON_SWITCHES} ${GPU_SWITCHES} "$@"
+  /usr/bin/chromium ${COMMON_SWITCHES} ${GPU_SWITCHES} "$@"
