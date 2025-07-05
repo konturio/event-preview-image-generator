@@ -28,7 +28,8 @@ path `/app/cache` and you need to define a variable
 * CHROMIUM_CACHE_SIZE - cache size (in bytes)
 * CHROMIUM_GPU_MODE - GPU backend selection. Allowed values:
   * `software` - default; uses SwiftShader for CPU rendering.
-  * `gl` - hardware acceleration via ANGLE and EGL.
+  * `gl` - hardware acceleration via desktop GLX.
+  * `egl` - hardware acceleration via ANGLE and EGL.
   * `vulkan` - hardware acceleration via ANGLE Vulkan.
 
 ### Volumes

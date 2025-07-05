@@ -3,7 +3,8 @@
 
 # Select GPU backend.
 # 'software' - SwiftShader CPU rendering (default).
-# 'gl'       - EGL hardware acceleration.
+# 'gl'       - Desktop GLX acceleration.
+# 'egl'      - EGL hardware acceleration.
 # 'vulkan'   - Vulkan hardware acceleration.
 GPU_MODE=${CHROMIUM_GPU_MODE:-software}
 
@@ -16,11 +17,15 @@ case "$GPU_MODE" in
       --enable-features=Vulkan,UseSkiaRenderer \
       --disable-vulkan-surface"
     ;;
-  gl)
+  egl)
     DISABLE_FEATURES="${DISABLE_FEATURES},Vulkan"
     GPU_SWITCHES="--use-angle=gl-egl \
       --use-gl=egl \
       --use-cmd-decoder=passthrough"
+    ;;
+  gl)
+    DISABLE_FEATURES="${DISABLE_FEATURES},Vulkan"
+    GPU_SWITCHES="--use-gl=desktop"
     ;;
   *)
     DISABLE_FEATURES="${DISABLE_FEATURES},Vulkan"
