@@ -1,7 +1,7 @@
 # Chromium Headless
 
 Docker image for running Chromium in headless mode with WebGL or GPU support.
-The image is based on NVIDIA's GLVND runtime so that it can access host GPU drivers.
+The container is based on Ubuntu 24.04 so it can use the NVIDIA driver libraries injected by `nvidia-container-runtime`.
 
 ## Font settings
 
@@ -13,7 +13,7 @@ in [FontConfig](https://www.freedesktop.org/software/fontconfig/fontconfig-user.
 ```shell
 docker build -t chromium-headless:latest .
 ```
-The Dockerfile uses `nvcr.io/nvidia/opengl` to provide GPU libraries via GLVND.
+The Dockerfile installs Chromium and GPU libraries from the Ubuntu repositories.
 
 ## Setup
 
