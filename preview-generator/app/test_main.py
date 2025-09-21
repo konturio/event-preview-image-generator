@@ -12,7 +12,7 @@ def anyio_backend():
     return 'asyncio'
 
 
-@pytest.mark.anyio("asyncio")
+@pytest.mark.anyio
 async def test_get_screenshot_returns_cached_value(monkeypatch):
     """Ensure cached bytes are returned without invoking the generator."""
 
@@ -29,9 +29,10 @@ async def test_get_screenshot_returns_cached_value(monkeypatch):
 
     assert result == cached_bytes, 'expected cached screenshot bytes to be returned'
     assert not main.screenshot.await_args_list, 'expected screenshot generator to be skipped on cache hit'
+    assert cache_mock.set.await_count == 0, 'expected cache.set not to be awaited on cache hit'
 
 
-@pytest.mark.anyio("asyncio")
+@pytest.mark.anyio
 async def test_get_screenshot_fallbacks_when_cache_fails(monkeypatch):
     """When cache errors occur the screenshot should still be generated."""
 
@@ -48,9 +49,10 @@ async def test_get_screenshot_fallbacks_when_cache_fails(monkeypatch):
 
     assert result == generated_bytes, 'expected screenshot generation fallback when cache fails'
     assert main.screenshot.await_count == 1, 'expected screenshot generator to run exactly once'
+    assert cache_mock.set.await_count == 1, 'expected cache.set to be awaited exactly once despite failure'
 
 
-@pytest.mark.anyio("asyncio")
+@pytest.mark.anyio
 async def test_get_screenshot_without_cache(monkeypatch):
     """The generator should run when caching is disabled."""
 

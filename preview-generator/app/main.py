@@ -1,4 +1,5 @@
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Dict, Any
+import asyncio
 import socket
 import hashlib
 
@@ -40,13 +41,30 @@ if settings.CACHE_URL != '':
     caches.set_config(cache_config(settings.CACHE_URL, str(secret.CACHE_PASSWORD)))
 
 
+def cache_key_context(current_settings: 'Settings') -> Dict[str, Any]:
+    """Return the subset of settings that should influence cache lookups."""
+
+    default_image_url = current_settings.DEFAULT_IMAGE_URL
+    return {
+        'site_url': str(current_settings.SITE_URL),
+        'event_name': current_settings.EVENT_NAME,
+        'image_format': current_settings.IMAGE_FORMAT,
+        'width': current_settings.WIDTH,
+        'height': current_settings.HEIGHT,
+        'default_image_url': str(default_image_url) if default_image_url is not None else None,
+    }
+
+
 def cache_key_builder(f, current_settings: 'Settings') -> str:
+    """Compose a deterministic key for screenshot cache entries."""
+
     key = {
         'module': f.__module__,
         'func': f.__name__,
-        **current_settings.asdict()
+        **cache_key_context(current_settings),
     }
-    return hashlib.md5(json.dumps(key).encode("utf-8")).hexdigest()
+    payload = json.dumps(key, sort_keys=True).encode('utf-8')
+    return hashlib.md5(payload).hexdigest()
 
 
 async def default_image(default_image_url: URL):
@@ -83,6 +101,8 @@ async def screenshot(current_settings: 'Settings') -> bytes:
 
 CACHE_ALIAS = 'default'
 CACHE_NAMESPACE = 'epig'
+CACHE_OP_TIMEOUT_SEC = 1.0
+CACHE_WRITE_TIMEOUT_SEC = 1.0
 
 
 def _is_cache_enabled(current_settings: 'Settings') -> bool:
@@ -112,18 +132,39 @@ async def get_screenshot(current_settings: 'Settings') -> bytes:
         if cache is not None:
             cache_key = cache_key_builder(screenshot, current_settings)
             try:
-                cached_value = await cache.get(cache_key, namespace=CACHE_NAMESPACE)
+                cached_value = await asyncio.wait_for(
+                    cache.get(cache_key, namespace=CACHE_NAMESPACE),
+                    timeout=CACHE_OP_TIMEOUT_SEC,
+                )
+            except asyncio.TimeoutError:
+                LOGGER.exception('Timed out reading screenshot from cache', extra={'cache_key': cache_key})
             except Exception:
                 LOGGER.exception('Failed to read screenshot from cache', extra={'cache_key': cache_key})
             else:
                 if cached_value is not None:
+                    LOGGER.debug('Cache hit for screenshot cache_key=%s', cache_key, extra={'cache_key': cache_key})
                     return cached_value
 
     image = await screenshot(current_settings)
+    if isinstance(image, memoryview):
+        image = image.tobytes()
+    elif isinstance(image, bytearray):
+        image = bytes(image)
+    elif not isinstance(image, bytes):
+        raise TypeError('Screenshot generator returned unsupported type: {0!r}'.format(type(image)))
 
     if cache is not None and cache_key is not None:
         try:
-            await cache.set(cache_key, image, ttl=current_settings.CACHE_TTL, namespace=CACHE_NAMESPACE)
+            await asyncio.wait_for(
+                cache.set(cache_key, image, ttl=current_settings.CACHE_TTL, namespace=CACHE_NAMESPACE),
+                timeout=CACHE_WRITE_TIMEOUT_SEC,
+            )
+            LOGGER.debug(
+                'Stored screenshot in cache',
+                extra={'cache_key': cache_key, 'ttl': current_settings.CACHE_TTL},
+            )
+        except asyncio.TimeoutError:
+            LOGGER.exception('Timed out storing screenshot in cache', extra={'cache_key': cache_key})
         except Exception:
             LOGGER.exception('Failed to store screenshot in cache', extra={'cache_key': cache_key})
 
