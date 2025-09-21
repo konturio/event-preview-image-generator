@@ -44,14 +44,15 @@ if settings.CACHE_URL != '':
 def cache_key_context(current_settings: 'Settings') -> Dict[str, Any]:
     """Return the subset of settings that should influence cache lookups."""
 
+    site_url = current_settings.SITE_URL
     default_image_url = current_settings.DEFAULT_IMAGE_URL
     return {
-        'site_url': str(current_settings.SITE_URL),
+        'site_url': str(site_url) if site_url is not None else '',
         'event_name': current_settings.EVENT_NAME,
         'image_format': current_settings.IMAGE_FORMAT,
         'width': current_settings.WIDTH,
         'height': current_settings.HEIGHT,
-        'default_image_url': str(default_image_url) if default_image_url is not None else None,
+        'default_image_url': str(default_image_url) if default_image_url is not None else '',
     }
 
 
@@ -64,7 +65,7 @@ def cache_key_builder(f, current_settings: 'Settings') -> str:
         **cache_key_context(current_settings),
     }
     payload = json.dumps(key, sort_keys=True).encode('utf-8')
-    return hashlib.md5(payload).hexdigest()
+    return hashlib.sha256(payload).hexdigest()
 
 
 async def default_image(default_image_url: URL):
@@ -108,7 +109,14 @@ CACHE_WRITE_TIMEOUT_SEC = 1.0
 def _is_cache_enabled(current_settings: 'Settings') -> bool:
     """Return True when cache configuration should be used for the request."""
 
-    return current_settings.CACHE_URL not in (None, '')
+    cache_url = current_settings.CACHE_URL
+    if cache_url is None:
+        return False
+
+    if isinstance(cache_url, str):
+        return cache_url.strip() != ''
+
+    return str(cache_url).strip() != ''
 
 
 def _get_cache_instance() -> Optional[BaseCache]:
