@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, Optional, Dict, Any
 import asyncio
 import socket
 import hashlib
-import json
+import json as std_json
 from collections import OrderedDict
 
 import sentry_sdk
@@ -66,7 +66,7 @@ def cache_key_builder(f, current_settings: 'Settings') -> str:
         **cache_key_context(current_settings),
     }
     ordered_key = OrderedDict(sorted(key.items()))
-    payload = json.dumps(ordered_key, sort_keys=True).encode('utf-8')
+    payload = std_json.dumps(ordered_key, sort_keys=True).encode('utf-8')
     return hashlib.sha256(payload).hexdigest()
 
 
