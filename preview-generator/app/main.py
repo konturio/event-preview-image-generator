@@ -2,9 +2,10 @@ from typing import TYPE_CHECKING, Optional, Dict, Any
 import asyncio
 import socket
 import hashlib
+import json
+from collections import OrderedDict
 
 import sentry_sdk
-import ujson as json
 from aiocache import caches
 from aiocache.base import BaseCache
 from starlette.applications import Starlette
@@ -64,7 +65,8 @@ def cache_key_builder(f, current_settings: 'Settings') -> str:
         'func': f.__name__,
         **cache_key_context(current_settings),
     }
-    payload = json.dumps(key, sort_keys=True).encode('utf-8')
+    ordered_key = OrderedDict(sorted(key.items()))
+    payload = json.dumps(ordered_key, sort_keys=True).encode('utf-8')
     return hashlib.sha256(payload).hexdigest()
 
 
